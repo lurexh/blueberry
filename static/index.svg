@@ -302,9 +302,48 @@
                 </section>
                 <section class="settings-panel" id="settings-privacy-panel" hidden="hidden">
                   <div class="privacy-notice">
-                    <h4 data-i18n="privacy.title">Website cloaker</h4>
-                    <p class="settings-help" data-i18n="privacy.body">Blueberry will be adding the website cloaker in release version 1.0.0. Please bare with us as we update blueberry.</p>
+                    <h4 data-i18n="privacy.title">Browsing privacy</h4>
+                    <p class="settings-help" data-i18n="privacy.body">Blueberry does not disguise website destinations inside the proxy. In-app history is stored only for this browser session; websites, proxy providers, and network administrators may still see connection activity.</p>
                   </div>
+                  <h4 data-i18n="cloak.title">Tab cloaker</h4>
+                  <p class="settings-help" data-i18n="cloak.help">Disguise this tab's title and icon so the app looks like another website. This only changes how the tab appears here; it does not hide your activity from your network.</p>
+                  <label class="setting-field" for="cloak-preset"><span data-i18n="cloak.preset">Preset disguise</span>
+                    <select id="cloak-preset">
+                      <option value="none" data-i18n="cloak.none">None (BlueberryUB)</option>
+                      <option value="google">Google</option>
+                      <option value="gdocs">Google Docs</option>
+                      <option value="gslides">Google Slides</option>
+                      <option value="gsheets">Google Sheets</option>
+                      <option value="classroom">Google Classroom</option>
+                      <option value="drive">Google Drive</option>
+                      <option value="gmail">Gmail</option>
+                      <option value="canvas">Canvas</option>
+                      <option value="clever">Clever</option>
+                      <option value="khan">Khan Academy</option>
+                      <option value="desmos">Desmos</option>
+                      <option value="wikipedia">Wikipedia</option>
+                      <option value="quizlet">Quizlet</option>
+                      <option value="powerschool">PowerSchool</option>
+                      <option value="newtab">Blank tab</option>
+                      <option value="custom" data-i18n="cloak.custom">Custom…</option>
+                    </select>
+                  </label>
+                  <label class="setting-field" for="cloak-title"><span data-i18n="cloak.custom-title">Custom tab title</span>
+                    <input id="cloak-title" type="text" placeholder="Google Docs" />
+                  </label>
+                  <label class="setting-field" for="cloak-icon"><span data-i18n="cloak.custom-icon">Custom favicon URL</span>
+                    <input id="cloak-icon" type="url" placeholder="https://example.com/favicon.ico" />
+                  </label>
+                  <label class="setting-field" for="cloak-panic-key"><span data-i18n="cloak.panic-key">Panic key (closes cloaks and redirects)</span>
+                    <input id="cloak-panic-key" type="text" maxlength="1" placeholder="`" />
+                  </label>
+                  <label class="setting-field" for="cloak-panic-url"><span data-i18n="cloak.panic-url">Panic redirect URL</span>
+                    <input id="cloak-panic-url" type="url" placeholder="https://www.google.com" />
+                  </label>
+                  <label class="setting-field"><span></span><span class="setting-check"><input id="cloak-auto" type="checkbox" /><span data-i18n="cloak.auto">Open the about:blank cloak automatically on load</span></span></label>
+                  <label class="setting-field"><span></span><span class="setting-check"><input id="cloak-swallow" type="checkbox" /><span data-i18n="cloak.swallow">Replace this tab with the panic page after the cloak opens</span></span></label>
+                  <div class="settings-footer"><p data-i18n="cloak.hint">Applies here and opens the app in an about:blank tab.</p><button class="settings-apply" id="cloak-apply" type="button" data-i18n="cloak.apply">Apply cloak</button></div>
+                  <div class="appearance-actions"><button class="appearance-reset" id="cloak-reset" type="button" data-i18n="cloak.reset">Remove cloak</button><span class="appearance-status" id="cloak-status" role="status" aria-live="polite"></span></div>
                 </section>
                 <section class="settings-panel" id="settings-proxy-panel">
                   <label class="setting-field" for="proxy-engine"><span data-i18n="proxy.engine">Proxy engine</span>
@@ -691,6 +730,204 @@
           }
         });
         loadAppearanceAsset();
+const cloakPrefix = "blueberryub.cloak.";
+const cloakPreset = document.querySelector("#cloak-preset");
+const cloakTitle = document.querySelector("#cloak-title");
+const cloakIcon = document.querySelector("#cloak-icon");
+const cloakPanicKey = document.querySelector("#cloak-panic-key");
+const cloakPanicUrl = document.querySelector("#cloak-panic-url");
+const cloakAuto = document.querySelector("#cloak-auto");
+const cloakSwallow = document.querySelector("#cloak-swallow");
+const cloakApply = document.querySelector("#cloak-apply");
+const cloakReset = document.querySelector("#cloak-reset");
+const cloakStatus = document.querySelector("#cloak-status");
+const cloakWindows = new Set();
+const defaultCloak = { title: "BlueberryUB", icon: new URL("../logo/blueub.png", location.href).href };
+const cloakPresets = {
+  google: { title: "Google", icon: "https://www.google.com/s2/favicons?domain=google.com&sz=64" },
+  gdocs: { title: "Untitled document - Google Docs", icon: "https://www.google.com/s2/favicons?domain=docs.google.com&sz=64" },
+  gslides: { title: "Untitled presentation - Google Slides", icon: "https://www.google.com/s2/favicons?domain=docs.google.com&sz=64" },
+  gsheets: { title: "Untitled spreadsheet - Google Sheets", icon: "https://www.google.com/s2/favicons?domain=docs.google.com&sz=64" },
+  classroom: { title: "Home - Google Classroom", icon: "https://www.google.com/s2/favicons?domain=classroom.google.com&sz=64" },
+  drive: { title: "My Drive - Google Drive", icon: "https://www.google.com/s2/favicons?domain=drive.google.com&sz=64" },
+  gmail: { title: "Inbox (1) - Gmail", icon: "https://www.google.com/s2/favicons?domain=gmail.com&sz=64" },
+  canvas: { title: "Dashboard", icon: "https://du11hjcvx0uqb.cloudfront.net/dist/images/favicon-e10d657a73.ico" },
+  clever: { title: "Clever | Portal", icon: "https://assets.clever.com/avatar/favicon.ico" },
+  khan: { title: "Dashboard | Khan Academy", icon: "https://www.google.com/s2/favicons?domain=khanacademy.org&sz=64" },
+  desmos: { title: "Desmos | Graphing Calculator", icon: "https://www.google.com/s2/favicons?domain=desmos.com&sz=64" },
+  wikipedia: { title: "Wikipedia, the free encyclopedia", icon: "https://en.wikipedia.org/static/favicon/wikipedia.ico" },
+  quizlet: { title: "Flashcards - Quizlet", icon: "https://www.google.com/s2/favicons?domain=quizlet.com&sz=64" },
+  powerschool: { title: "PowerSchool SIS", icon: "https://www.google.com/s2/favicons?domain=powerschool.com&sz=64" },
+  newtab: { title: "New Tab", icon: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" }
+};
+function cloakGet(key, fallback) {
+  try {
+    const value = localStorage.getItem(cloakPrefix + key);
+    return value === null ? fallback : value;
+  } catch (error) {
+    return fallback;
+  }
+}
+function cloakSet(key, value) {
+  try {
+    localStorage.setItem(cloakPrefix + key, value);
+  } catch (error) {
+    cloakStatus.textContent = "Could not save cloak settings: " + error.message;
+  }
+}
+function cloakReadSettings() {
+  const preset = cloakGet("preset", "none");
+  if (preset === "custom") return "custom";
+  if (cloakPresets[preset]) return preset;
+  try {
+    const stored = JSON.parse(localStorage.getItem("blueberryub.static-cloak") || "null");
+    if (stored && typeof stored === "object") {
+      const title = typeof stored.title === "string" ? stored.title.trim() : "";
+      const icon = typeof stored.icon === "string" ? stored.icon.trim() : "";
+      if (title || icon) {
+        cloakSet("preset", "custom");
+        cloakSet("custom-title", title);
+        cloakSet("custom-icon", icon);
+        localStorage.removeItem("blueberryub.static-cloak");
+        return "custom";
+      }
+    }
+  } catch (error) {
+    console.warn("Could not read cloak settings:", error);
+  }
+  return "none";
+}
+function cloakResolvePreset(id) {
+  if (id === "custom") {
+    const title = cloakGet("custom-title", "") || "Google";
+    const icon = cloakGet("custom-icon", "") || "https://www.google.com/s2/favicons?domain=google.com&sz=64";
+    return { title, icon };
+  }
+  return cloakPresets[id] || null;
+}
+function applyCloak(settings) {
+  document.title = settings?.title || defaultCloak.title;
+  const icon = settings?.icon || defaultCloak.icon;
+  let link = document.head.querySelector("link[rel~='icon']");
+  if (!link) {
+    link = createHtmlElement("link");
+    link.rel = "icon";
+    document.head.append(link);
+  }
+  link.href = icon;
+}
+function cloakPageScript(panicKey) {
+  const apply = () => {
+    const closeAt = Number(localStorage.getItem("blueberryub.cloak.closeAt")) || 0;
+    if (closeAt && Date.now() >= closeAt) {
+      localStorage.setItem("blueberryub.cloak.closeAt", "0");
+      window.close();
+      window.setTimeout(() => window.location.replace(localStorage.getItem("blueberryub.cloak.panic-url") || "https://www.google.com"), 150);
+    }
+  };
+  setInterval(apply, 400);
+  window.addEventListener("keydown", (event) => {
+    if (event.key === panicKey) {
+      localStorage.setItem("blueberryub.cloak.closeAt", String(Date.now()));
+    }
+  });
+}
+function cloakOpen() {
+  const preset = cloakResolvePreset(cloakGet("preset", "none"));
+  if (!preset) return null;
+  const win = window.open("about:blank", "_blank");
+  if (!win) return null;
+  const panicKey = cloakGet("panic-key", "`").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const frameUrl = location.href;
+  win.document.write(
+    "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>" + preset.title + "</title>" +
+    "<link rel=\"icon\" href=\"" + preset.icon + "\">" +
+    "<style>html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#fff}iframe{display:block;border:0;width:100%;height:100%}</style>" +
+    "</head><body><iframe src=\"" + frameUrl + "\" allow=\"fullscreen\" title=\"BlueberryUB\"></iframe><" + "script>(" + cloakPageScript.toString() + ")(\"" + panicKey + "\")<" + "/script></body></html>"
+  );
+  win.document.close();
+  cloakWindows.add(win);
+  try { win.focus(); } catch (error) {}
+  return win;
+}
+function cloakPanic() {
+  cloakSet("closeAt", String(Date.now()));
+  for (const win of cloakWindows) {
+    try { win.close(); } catch (error) {}
+  }
+  cloakWindows.clear();
+  window.location.replace(cloakGet("panic-url", "https://www.google.com"));
+}
+function syncCloakForm() {
+  const preset = cloakGet("preset", "none");
+  const resolved = cloakResolvePreset(preset) || {};
+  cloakPreset.value = preset;
+  cloakTitle.value = preset === "custom" ? cloakGet("custom-title", "") : resolved.title || "";
+  cloakIcon.value = preset === "custom" ? cloakGet("custom-icon", "") : resolved.icon || "";
+  cloakPanicKey.value = cloakGet("panic-key", "`");
+  cloakPanicUrl.value = cloakGet("panic-url", "https://www.google.com");
+  cloakAuto.checked = cloakGet("enabled", "false") === "true";
+  cloakSwallow.checked = cloakGet("swallow", "false") === "true";
+}
+cloakPreset.addEventListener("change", () => {
+  cloakSet("preset", cloakPreset.value);
+  const preset = cloakPresets[cloakPreset.value];
+  if (preset) {
+    cloakTitle.value = preset.title;
+    cloakIcon.value = preset.icon;
+  }
+  applyCloak(cloakResolvePreset(cloakPreset.value));
+});
+cloakPanicKey.addEventListener("change", () => cloakSet("panic-key", cloakPanicKey.value.trim().slice(0, 1) || "`"));
+cloakPanicUrl.addEventListener("change", () => cloakSet("panic-url", cloakPanicUrl.value.trim() || "https://www.google.com"));
+cloakAuto.addEventListener("change", () => cloakSet("enabled", String(cloakAuto.checked)));
+cloakSwallow.addEventListener("change", () => cloakSet("swallow", String(cloakSwallow.checked)));
+cloakTitle.addEventListener("input", () => {
+  if (cloakPreset.value === "custom") cloakSet("custom-title", cloakTitle.value.trim());
+});
+cloakIcon.addEventListener("input", () => {
+  if (cloakPreset.value === "custom") cloakSet("custom-icon", cloakIcon.value.trim());
+});
+cloakApply.addEventListener("click", () => {
+  const title = cloakTitle.value.trim();
+  const icon = cloakIcon.value.trim();
+  if (!title && !icon) {
+    cloakStatus.textContent = translationsFor("cloak.error");
+    return;
+  }
+  cloakSet("enabled", "true");
+  if (cloakPreset.value === "custom") {
+    cloakSet("custom-title", title);
+    cloakSet("custom-icon", icon);
+  }
+  applyCloak(cloakResolvePreset(cloakPreset.value));
+  const aboutWindow = cloakOpen();
+  if (!aboutWindow) {
+    cloakStatus.textContent = translationsFor("cloak.popup-error");
+    return;
+  }
+  if (cloakGet("swallow", "false") === "true") {
+    window.location.replace(cloakGet("panic-url", "https://www.google.com"));
+    return;
+  }
+  cloakStatus.textContent = translationsFor("cloak.applied");
+});
+cloakReset.addEventListener("click", () => {
+  cloakSet("enabled", "false");
+  cloakSet("preset", "none");
+  applyCloak(null);
+  syncCloakForm();
+  cloakStatus.textContent = translationsFor("cloak.removed");
+});
+function translationsFor(key) {
+  return settingsTranslations[currentLanguage][key] || settingsTranslations.en[key] || "";
+}
+document.addEventListener("keydown", (event) => {
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) return;
+  if (event.key === cloakGet("panic-key", "`")) cloakPanic();
+});
+applyCloak(cloakResolvePreset(cloakGet("preset", "none")));
+syncCloakForm();
         const languageKey = "blueberryub.static-language";
         const settingsTranslations = {
           en: {
@@ -714,7 +951,25 @@
             "appearance.rain": "Rain on the glass",
             "appearance.reset": "Remove custom background",
             "privacy.title": "Browsing privacy",
-            "privacy.body": "Blueberry does not disguise websites as Google Docs or hide their destinations. In-app history is stored only for this browser session; websites, proxy providers, and network administrators may still see connection activity.",
+            "privacy.body": "Blueberry does not disguise website destinations inside the proxy. In-app history is stored only for this browser session; websites, proxy providers, and network administrators may still see connection activity.",
+            "cloak.title": "Tab cloaker",
+            "cloak.help": "Disguise this tab's title and icon so the app looks like another website. This only changes how the tab appears here; it does not hide your activity from your network.",
+            "cloak.preset": "Preset disguise",
+            "cloak.none": "None (BlueberryUB)",
+            "cloak.custom": "Custom…",
+            "cloak.custom-title": "Custom tab title",
+            "cloak.custom-icon": "Custom favicon URL",
+            "cloak.panic-key": "Panic key (closes cloaks and redirects)",
+            "cloak.panic-url": "Panic redirect URL",
+            "cloak.auto": "Open the about:blank cloak automatically on load",
+            "cloak.swallow": "Replace this tab with the panic page after the cloak opens",
+            "cloak.hint": "Applies here and opens the app in an about:blank tab.",
+            "cloak.apply": "Apply cloak",
+            "cloak.reset": "Remove cloak",
+            "cloak.applied": "Cloak applied.",
+            "cloak.removed": "Cloak removed.",
+            "cloak.error": "Choose a preset or enter a custom title or favicon URL.",
+            "cloak.popup-error": "Pop-up blocked. Allow pop-ups for this site to open the about:blank tab.",
             "proxy.engine": "Proxy engine",
             "proxy.uv-help": "Ultraviolet is a work in progress and is unavailable for now.",
             "proxy.transport": "Scramjet transport",
@@ -755,7 +1010,21 @@
             "appearance.rain": "Lluvia sobre el cristal",
             "appearance.reset": "Quitar fondo personalizado",
             "privacy.title": "Privacidad de navegación",
-            "privacy.body": "Blueberry no disfraza sitios web como Google Docs ni oculta sus destinos. El historial de la aplicación solo se guarda durante esta sesión; los sitios web, proveedores del proxy y administradores de red aún pueden ver la actividad de conexión.",
+            "privacy.body": "Blueberry no oculta los destinos de los sitios web dentro del proxy. El historial de la aplicación solo se guarda durante esta sesión; los sitios web, proveedores del proxy y administradores de red aún pueden ver la actividad de conexión.",
+            "cloak.title": "Disfraz de pestaña",
+            "cloak.help": "Cambia el título y el icono de esta pestaña para que la aplicación parezca otro sitio web. Esto solo cambia la apariencia de la pestaña aquí; no oculta tu actividad de tu red.",
+            "cloak.preset": "Disfraz predefinido",
+            "cloak.none": "Ninguno (BlueberryUB)",
+            "cloak.custom": "Personalizado…",
+            "cloak.custom-title": "Título personalizado",
+            "cloak.custom-icon": "URL de favicon personalizado",
+            "cloak.hint": "Se aplica aquí y abre la aplicación en una pestaña about:blank.",
+            "cloak.apply": "Aplicar disfraz",
+            "cloak.reset": "Quitar disfraz",
+            "cloak.applied": "Disfraz aplicado.",
+            "cloak.removed": "Disfraz quitado.",
+            "cloak.error": "Elige un disfraz predefinido o introduce un título o URL de favicon personalizado.",
+            "cloak.popup-error": "Ventana emergente bloqueada. Permite las ventanas emergentes para abrir la pestaña about:blank.",
             "proxy.engine": "Motor proxy",
             "proxy.uv-help": "Ultraviolet está en desarrollo y no está disponible por ahora.",
             "proxy.transport": "Transporte de Scramjet",
