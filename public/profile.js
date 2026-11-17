@@ -86,4 +86,79 @@ window.addEventListener("storage", (event) => {
   if (event.key === localHistoryKey) renderHistory();
 });
 
+const searchEngineSelect = document.querySelector("#search-engine");
+const searchEngineKey = "blueberryub.search-engine";
+if (searchEngineSelect) {
+  try {
+    searchEngineSelect.value = localStorage.getItem(searchEngineKey) || "duckduckgo";
+  } catch {}
+  searchEngineSelect.addEventListener("change", () => {
+    try {
+      localStorage.setItem(searchEngineKey, searchEngineSelect.value);
+    } catch {}
+  });
+}
+
+const cloakEnabledInput = document.querySelector("#cloak-enabled");
+const cloakPresetSelect = document.querySelector("#cloak-preset");
+const cloakPanicKeyInput = document.querySelector("#cloak-panic-key");
+const cloakPanicUrlInput = document.querySelector("#cloak-panic-url");
+const cloakCustomTitleInput = document.querySelector("#cloak-custom-title");
+const cloakCustomIconInput = document.querySelector("#cloak-custom-icon");
+const cloakSwallowInput = document.querySelector("#cloak-swallow");
+const cloakOpenButton = document.querySelector("#cloak-open-button");
+const cloakSaveButton = document.querySelector("#cloak-save-button");
+const cloakTestButton = document.querySelector("#cloak-test-button");
+const cloakStatus = document.querySelector("#cloak-status");
+const cloakApi = window.BLUEBERRY_CLOAK;
+
+function saveCloak() {
+  if (!cloakApi) return false;
+  cloakApi.cloak.enabled = cloakEnabledInput.checked;
+  cloakApi.cloak.panicKey = cloakPanicKeyInput.value || "`";
+  cloakApi.cloak.panicUrl = cloakPanicUrlInput.value || "https://www.google.com";
+  cloakApi.cloak.swallow = cloakSwallowInput.checked;
+  if (cloakPresetSelect.value) {
+    cloakApi.cloak.preset = cloakPresetSelect.value;
+    if (cloakPresetSelect.value === "custom") {
+      cloakApi.cloak.customTitle = cloakCustomTitleInput.value.trim();
+      cloakApi.cloak.customIcon = cloakCustomIconInput.value.trim();
+    }
+  }
+  return true;
+}
+
+if (cloakApi && cloakEnabledInput) {
+  for (const [id, preset] of Object.entries(cloakApi.presets)) {
+    const option = document.createElement("option");
+    option.value = id;
+    option.textContent = preset.name || id;
+    cloakPresetSelect.append(option);
+  }
+  cloakPresetSelect.value = cloakApi.cloak.preset;
+  cloakEnabledInput.checked = cloakApi.cloak.enabled;
+  cloakPanicKeyInput.value = cloakApi.cloak.panicKey;
+  cloakPanicUrlInput.value = cloakApi.cloak.panicUrl;
+  cloakCustomTitleInput.value = cloakApi.cloak.customTitle;
+  cloakCustomIconInput.value = cloakApi.cloak.customIcon;
+  cloakSwallowInput.checked = cloakApi.cloak.swallow;
+
+  cloakSaveButton.addEventListener("click", () => {
+    if (saveCloak()) cloakStatus.textContent = "Cloak settings saved.";
+  });
+
+  cloakOpenButton.addEventListener("click", () => {
+    saveCloak();
+    const win = cloakApi.open();
+    cloakStatus.textContent = win ? "Cloak opened in a new tab." : "Pop-up blocked. Allow pop-ups for this site, then try again.";
+  });
+
+  cloakTestButton.addEventListener("click", () => {
+    cloakApi.applyTab();
+    cloakStatus.textContent = "Preview applied to this tab.";
+  });
+} else if (cloakStatus) {
+  cloakStatus.textContent = "Cloaker is unavailable.";
+}
+
 void renderProfile();

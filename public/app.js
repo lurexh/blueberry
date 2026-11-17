@@ -23,6 +23,33 @@ const historyPreferenceKey = "blueberryub.history-enabled";
 const guestHistoryKey = "blueberryub.guest-history";
 const sessionTabsKey = "blueberryub.session-tabs";
 const recentlyClosedKey = "blueberryub.recently-closed";
+const searchEngineKey = "blueberryub.search-engine";
+const searchEngines = {
+  duckduckgo: { label: "DuckDuckGo", template: "https://html.duckduckgo.com/html/?q=" },
+  google: { label: "Google", template: "https://www.google.com/search?q=" },
+  bing: { label: "Bing", template: "https://www.bing.com/search?q=" },
+  startpage: { label: "Startpage", template: "https://www.startpage.com/sp/search?query=" },
+  brave: { label: "Brave Search", template: "https://search.brave.com/search?q=" },
+};
+
+function readSearchEngine() {
+  try {
+    const value = localStorage.getItem(searchEngineKey);
+    return value && searchEngines[value] ? value : "duckduckgo";
+  } catch {
+    return "duckduckgo";
+  }
+}
+
+let searchEngine = readSearchEngine();
+
+function updateAddressSearchText() {
+  const label = searchEngines[searchEngine].label;
+  addressInput.placeholder = `Search ${label} or enter an address`;
+  addressInput.setAttribute("aria-label", `Search ${label} or enter a web address`);
+}
+
+void updateAddressSearchText();
 const quickLinks = [
   { label: "BlueberryUB", url: "/", icon: "home", color: "sky", local: true },
   { label: "Google", url: "https://www.google.com", icon: "search", color: "sun" },
@@ -249,7 +276,7 @@ function resolveAddress(value) {
   }
 
   if (!hasHttpScheme && (/\s/.test(input) || !looksLikeAddress(input))) {
-    return `https://html.duckduckgo.com/html/?q=${encodeURIComponent(input)}`;
+    return `${searchEngines[searchEngine].template}${encodeURIComponent(input)}`;
   }
 
   const candidate = hasHttpScheme ? input : `https://${input}`;

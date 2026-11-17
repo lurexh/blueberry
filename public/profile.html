@@ -7,6 +7,7 @@
     <title>Profile - BlueberryUB</title>
     <link rel="icon" href="/logo/blueub.png" />
     <link rel="stylesheet" href="/profile.css" />
+    <script src="/cloak.js" defer></script>
     <script src="/profile.js" defer></script>
   </head>
   <body>
@@ -26,7 +27,7 @@
           <div>
             <p class="eyebrow">YOUR BLUEBERRY</p>
             <h1>Profile</h1>
-            <p class="heading-copy">Manage your display name and browsing history.</p>
+            <p class="heading-copy">Manage your display name, browser settings, and browsing history.</p>
           </div>
         </div>
 
@@ -63,6 +64,27 @@
             </div>
             <p class="history-status" id="history-status" role="status">Loading history…</p>
             <div class="history-list" id="history-list"></div>
+          </section>
+
+          <section class="history-panel" aria-labelledby="browser-title">
+            <div class="history-heading">
+              <div>
+                <h3 id="browser-title">Browser</h3>
+                <p>Search engine used by the address bar.</p>
+              </div>
+            </div>
+            <div class="cloak-grid">
+              <label>
+                <span>Search engine</span>
+                <select id="search-engine">
+                  <option value="duckduckgo">DuckDuckGo</option>
+                  <option value="google">Google</option>
+                  <option value="bing">Bing</option>
+                  <option value="startpage">Startpage</option>
+                  <option value="brave">Brave Search</option>
+                </select>
+              </label>
+            </div>
           </section>
 
           <section class="history-panel cloak-panel" aria-labelledby="cloak-title">

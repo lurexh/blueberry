@@ -162,6 +162,24 @@
           .app-tile:hover .app-logo,.app-tile:focus-visible .app-logo{transform:scale(1.035)}
           .app-tile:hover .app-name,.app-tile:focus-visible .app-name{opacity:1}
           .app-tile:focus-visible{outline:2px solid #347ca4;outline-offset:3px}
+          .apps-edit-toggle{flex:0 0 auto;height:40px;padding:0 14px;color:#246384;background:#e4edf2;border:0;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer}
+          .apps-edit-toggle:hover{background:#d8e4eb}
+          .apps-add{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+          .apps-add input{height:38px;min-width:0;padding:0 12px;color:#243247;background:#fff;border:1px solid #d8e2e8;border-radius:7px;font-size:12px;outline:0}
+          .apps-add input:focus{border-color:#83abc0;box-shadow:0 0 0 3px rgba(67,132,164,.12)}
+          .apps-add input#apps-add-name{flex:0 1 170px}
+          .apps-add input#apps-add-url{flex:1 1 220px}
+          .apps-add button{height:38px;padding:0 14px;color:#fff;background:#347ca4;border:0;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer}
+          .apps-add button:hover{background:#2d6d92}
+          .apps-add button#apps-reset-button{color:#8a3038;background:#f3e3e4}
+          .apps-add button#apps-reset-button:hover{background:#ecd6d8}
+          .app-edit{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(17,26,37,.78);border-radius:12px}
+          .app-tile.is-editing{cursor:default}
+          .app-tile.is-editing .app-edit{display:flex}
+          .app-edit button{min-width:26px;height:26px;padding:0 7px;color:#243247;background:#fff;border:0;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer}
+          .app-edit button:hover{background:#e4edf2}
+          .app-edit button[data-app-action="remove"]{color:#8a3038;background:#f3e3e4}
+          .app-tile.is-editing .app-logo,.app-tile.is-editing .app-name{opacity:.25}
           .apps-option{top:50%;left:-1%;transform:translateY(-50%);color:#39708a}
           .apps-option:hover:not(:disabled){transform:translateY(calc(-50% - 3px))}
           .tab-list{gap:3px;scrollbar-width:none}
@@ -210,7 +228,14 @@
             <div class="apps-tools">
               <label class="apps-search"><span data-icon="search"></span><input id="apps-search" type="search" autocomplete="off" placeholder="Search apps" aria-label="Search apps" /></label>
               <span class="apps-count" id="apps-count" role="status" aria-live="polite"></span>
+              <button class="apps-edit-toggle" id="apps-edit-toggle" type="button">Edit apps</button>
             </div>
+            <form class="apps-add" id="apps-add-form" hidden="hidden">
+              <input id="apps-add-name" type="text" placeholder="Name (optional)" maxlength="30" autocomplete="off" />
+              <input id="apps-add-url" type="text" placeholder="example.com" autocomplete="off" required="required" />
+              <button type="submit">Add app</button>
+              <button type="button" id="apps-reset-button">Reset</button>
+            </form>
           </header>
           <section class="apps-grid" id="apps-grid" aria-label="Apps"></section>
         </main>
@@ -288,6 +313,16 @@
                     </select>
                   </label>
                   <p class="settings-help" data-i18n="settings.language-help">Choose the language used by the home screen and settings.</p>
+                  <label class="setting-field" for="search-engine"><span data-i18n="settings.search-engine">Search engine</span>
+                    <select id="search-engine">
+                      <option value="duckduckgo">DuckDuckGo</option>
+                      <option value="google">Google</option>
+                      <option value="bing">Bing</option>
+                      <option value="startpage">Startpage</option>
+                      <option value="brave">Brave Search</option>
+                    </select>
+                  </label>
+                  <p class="settings-help" data-i18n="settings.search-engine-help">Choose the search engine the address bar uses for searches.</p>
                 </section>
                 <section class="settings-panel appearance-panel" id="settings-appearance-panel" hidden="hidden">
                   <label class="appearance-control" for="appearance-background-file"><span data-i18n="appearance.background">Background image or live video</span>
@@ -324,6 +359,14 @@
                       <option value="wikipedia">Wikipedia</option>
                       <option value="quizlet">Quizlet</option>
                       <option value="powerschool">PowerSchool</option>
+                      <option value="discord">Discord</option>
+                      <option value="youtube">YouTube</option>
+                      <option value="spotify">Spotify</option>
+                      <option value="netflix">Netflix</option>
+                      <option value="coolmath">Coolmath Games</option>
+                      <option value="chatgpt">ChatGPT</option>
+                      <option value="canva">Canva</option>
+                      <option value="duolingo">Duolingo</option>
                       <option value="newtab">Blank tab</option>
                       <option value="custom" data-i18n="cloak.custom">Custom…</option>
                     </select>
@@ -489,7 +532,8 @@
         const viewBackButton = document.querySelector("#view-back-button");
         const viewHistory = [];
         let currentView = "home";
-        const apps = [
+        const appsKey = "blueberryub.static-apps";
+        const defaultApps = [
           { name: "Main Page", home: true, url: "blueberryub", logo: "blueub.png" },
           { name: "Amazon", url: "amazon.com", logo: "amazon.jpeg" },
           { name: "Crunchyroll", url: "crunchyroll.com", logo: "crunchyroll.jpeg" },
@@ -507,6 +551,50 @@
         const appsGrid = document.querySelector("#apps-grid");
         const appsSearch = document.querySelector("#apps-search");
         const appsCount = document.querySelector("#apps-count");
+        const appsEditToggle = document.querySelector("#apps-edit-toggle");
+        const appsAddForm = document.querySelector("#apps-add-form");
+        const appsAddName = document.querySelector("#apps-add-name");
+        const appsAddUrl = document.querySelector("#apps-add-url");
+        const appsResetButton = document.querySelector("#apps-reset-button");
+        let appsEditing = false;
+        let apps = loadApps();
+        function loadApps() {
+          try {
+            const stored = JSON.parse(localStorage.getItem(appsKey) || "null");
+            if (Array.isArray(stored)) {
+              const custom = stored
+                .filter((app) => app && typeof app.name === "string" && typeof app.url === "string" && !app.home)
+                .map((app) => ({ name: app.name.slice(0, 40), url: app.url }));
+              return [defaultApps[0], ...custom];
+            }
+          } catch (error) {}
+          return defaultApps.slice();
+        }
+        function persistApps() {
+          try {
+            localStorage.setItem(appsKey, JSON.stringify(apps.filter((app) => !app.home)));
+          } catch (error) {}
+        }
+        function appLogoUrl(app) {
+          let host = app.url;
+          try {
+            host = new URL(/^https?:\/\//i.test(app.url) ? app.url : `https://${app.url}`).hostname;
+          } catch (error) {}
+          return `https://icons.duckduckgo.com/ip3/${encodeURIComponent(host)}.ico`;
+        }
+        function moveApp(index, delta) {
+          const target = index + delta;
+          if (target < 1 || target >= apps.length) return;
+          const [moved] = apps.splice(index, 1);
+          apps.splice(target, 0, moved);
+          persistApps();
+          renderApps();
+        }
+        function removeApp(index) {
+          apps.splice(index, 1);
+          persistApps();
+          renderApps();
+        }
         function updateAppsFilter() {
           const query = appsSearch.value.trim().toLowerCase();
           let visibleCount = 0;
@@ -519,35 +607,93 @@
         function renderApps() {
           appsGrid.replaceChildren();
           for (const app of apps) {
-            const button = createHtmlElement("button");
-            button.className = "app-tile";
-            button.type = "button";
-            button.title = app.name;
-            button.dataset.search = `${app.name} ${app.url}`.toLowerCase();
-            button.setAttribute("aria-label", app.name);
+            const editable = appsEditing && !app.home;
+            const tile = createHtmlElement(editable ? "div" : "button");
+            tile.className = "app-tile";
+            if (editable) tile.classList.add("is-editing");
+            if (!editable) tile.type = "button";
+            tile.title = app.name;
+            tile.dataset.search = `${app.name} ${app.url}`.toLowerCase();
+            tile.setAttribute("aria-label", app.name);
             const logo = createHtmlElement("img");
             logo.className = "app-logo";
             if (app.home) setBrandLogo(logo);
-            else logo.src = new URL("../apps/logos/" + app.logo, location.href).href;
+            else logo.src = app.logo ? new URL("../apps/logos/" + app.logo, location.href).href : appLogoUrl(app);
             logo.alt = app.name;
             logo.loading = "lazy";
             logo.decoding = "async";
             const label = createHtmlElement("span");
             label.className = "app-name";
             label.textContent = app.name;
-            button.append(logo, label);
-            button.addEventListener("click", () => {
-              if (app.home) showView("home");
-              else {
-                showView("browser");
-                navigate(app.url);
-              }
-            });
-            appsGrid.append(button);
+            tile.append(logo, label);
+            if (editable) {
+              const edit = createHtmlElement("span");
+              edit.className = "app-edit";
+              const index = apps.indexOf(app);
+              const up = createHtmlElement("button");
+              up.type = "button";
+              up.textContent = "↑";
+              up.setAttribute("aria-label", `Move ${app.name} up`);
+              up.addEventListener("click", () => moveApp(apps.indexOf(app), -1));
+              const down = createHtmlElement("button");
+              down.type = "button";
+              down.textContent = "↓";
+              down.setAttribute("aria-label", `Move ${app.name} down`);
+              down.addEventListener("click", () => moveApp(apps.indexOf(app), 1));
+              const remove = createHtmlElement("button");
+              remove.type = "button";
+              remove.textContent = "✕";
+              remove.dataset.appAction = "remove";
+              remove.setAttribute("aria-label", `Remove ${app.name}`);
+              remove.addEventListener("click", () => removeApp(apps.indexOf(app)));
+              edit.append(up, down, remove);
+              tile.append(edit);
+            } else {
+              tile.addEventListener("click", () => {
+                if (app.home) showView("home");
+                else {
+                  showView("browser");
+                  navigate(app.url);
+                }
+              });
+            }
+            appsGrid.append(tile);
           }
           updateAppsFilter();
         }
         appsSearch.addEventListener("input", updateAppsFilter);
+        appsEditToggle.addEventListener("click", () => {
+          appsEditing = !appsEditing;
+          appsEditToggle.textContent = appsEditing ? "Done" : "Edit apps";
+          appsAddForm.hidden = !appsEditing;
+          if (appsEditing) appsSearch.value = "";
+          renderApps();
+        });
+        appsAddForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          let raw = appsAddUrl.value.trim();
+          if (!raw) return;
+          if (!/^https?:\/\//i.test(raw)) raw = `https://${raw}`;
+          let url;
+          try {
+            url = new URL(raw);
+          } catch (error) {
+            return;
+          }
+          if (!["http:", "https:"].includes(url.protocol)) return;
+          apps.push({ name: appsAddName.value.trim() || url.hostname.replace(/^www\./, ""), url: url.href });
+          appsAddName.value = "";
+          appsAddUrl.value = "";
+          persistApps();
+          renderApps();
+        });
+        appsResetButton.addEventListener("click", () => {
+          try {
+            localStorage.removeItem(appsKey);
+          } catch (error) {}
+          apps = loadApps();
+          renderApps();
+        });
         function activateView(name) {
           currentView = name;
           for (const [view, section] of Object.entries(sections)) section.hidden = view !== name;
@@ -571,6 +717,7 @@
         const settingsPageTitle = document.querySelector("#settings-page-title");
         const settingsPageDescription = document.querySelector("#settings-page-description");
         const interfaceLanguage = document.querySelector("#interface-language");
+        const searchEngineSelect = document.querySelector("#search-engine");
         const appearanceBackgroundFile = document.querySelector("#appearance-background-file");
         const appearanceBlur = document.querySelector("#appearance-blur");
         const appearanceBlurValue = document.querySelector("#appearance-blur-value");
@@ -758,6 +905,14 @@ const cloakPresets = {
   wikipedia: { title: "Wikipedia, the free encyclopedia", icon: "https://en.wikipedia.org/static/favicon/wikipedia.ico" },
   quizlet: { title: "Flashcards - Quizlet", icon: "https://www.google.com/s2/favicons?domain=quizlet.com&sz=64" },
   powerschool: { title: "PowerSchool SIS", icon: "https://www.google.com/s2/favicons?domain=powerschool.com&sz=64" },
+  discord: { title: "Discord", icon: "https://www.google.com/s2/favicons?domain=discord.com&sz=64" },
+  youtube: { title: "YouTube", icon: "https://www.google.com/s2/favicons?domain=youtube.com&sz=64" },
+  spotify: { title: "Spotify - Web Player: Music for everyone", icon: "https://www.google.com/s2/favicons?domain=spotify.com&sz=64" },
+  netflix: { title: "Netflix", icon: "https://www.google.com/s2/favicons?domain=netflix.com&sz=64" },
+  coolmath: { title: "Coolmath Games", icon: "https://www.google.com/s2/favicons?domain=coolmathgames.com&sz=64" },
+  chatgpt: { title: "ChatGPT", icon: "https://www.google.com/s2/favicons?domain=chatgpt.com&sz=64" },
+  canva: { title: "Canva", icon: "https://www.google.com/s2/favicons?domain=canva.com&sz=64" },
+  duolingo: { title: "Duolingo - Learn a language for free", icon: "https://www.google.com/s2/favicons?domain=duolingo.com&sz=64" },
   newtab: { title: "New Tab", icon: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" }
 };
 function cloakGet(key, fallback) {
@@ -945,6 +1100,8 @@ syncCloakForm();
             "settings.about-description": "Version, acknowledgements, and project links.",
             "settings.language": "Interface language",
             "settings.language-help": "Choose the language used by the home screen and settings.",
+            "settings.search-engine": "Search engine",
+            "settings.search-engine-help": "Choose the search engine the address bar uses for searches.",
             "appearance.background": "Background image or live video",
             "appearance.background-help": "Choose an image or a video that loops silently as the background throughout BlueberryUB.",
             "appearance.blur": "Glass blur",
@@ -1004,6 +1161,8 @@ syncCloakForm();
             "settings.about-description": "Versión, agradecimientos y enlaces del proyecto.",
             "settings.language": "Idioma de la interfaz",
             "settings.language-help": "Elige el idioma de la pantalla de inicio y la configuración.",
+            "settings.search-engine": "Buscador",
+            "settings.search-engine-help": "Elige el buscador que usa la barra de direcciones para las búsquedas.",
             "appearance.background": "Imagen de fondo o video en vivo",
             "appearance.background-help": "Elige una imagen o un video que se repetirá en silencio como fondo de BlueberryUB.",
             "appearance.blur": "Desenfoque del cristal",
@@ -1118,7 +1277,8 @@ syncCloakForm();
             localStorage.setItem(languageKey, nextLanguage);
           } catch (error) {
             showStatus("Could not save interface language: " + error.message);
-            interfaceLanguage.value = currentLanguage;
+          interfaceLanguage.value = currentLanguage;
+          searchEngineSelect.value = searchEngine;
             return;
           }
           currentLanguage = nextLanguage;
@@ -1168,6 +1328,40 @@ syncCloakForm();
         const historyKey = "blueberryub.static-history";
         const recentlyClosedKey = "blueberryub.static-recently-closed";
         const zoomKey = "blueberryub.static-zoom";
+        const searchEngineKey = "blueberryub.static-search-engine";
+        const searchEngines = {
+          duckduckgo: { label: "DuckDuckGo", template: "https://html.duckduckgo.com/html/?q=" },
+          google: { label: "Google", template: "https://www.google.com/search?q=" },
+          bing: { label: "Bing", template: "https://www.bing.com/search?q=" },
+          startpage: { label: "Startpage", template: "https://www.startpage.com/sp/search?query=" },
+          brave: { label: "Brave Search", template: "https://search.brave.com/search?q=" }
+        };
+        let searchEngine = readSearchEngine();
+        function readSearchEngine() {
+          try {
+            const value = localStorage.getItem(searchEngineKey);
+            return value && searchEngines[value] ? value : "duckduckgo";
+          } catch (error) {
+            return "duckduckgo";
+          }
+        }
+        function updateAddressSearchText() {
+          const label = searchEngines[searchEngine].label;
+          addressInput.placeholder = `Search ${label} or enter an address`;
+          addressInput.setAttribute("aria-label", `Search ${label} or enter a web address`);
+        }
+        searchEngineSelect.value = searchEngine;
+        updateAddressSearchText();
+        searchEngineSelect.addEventListener("change", () => {
+          searchEngine = searchEngines[searchEngineSelect.value] ? searchEngineSelect.value : "duckduckgo";
+          try {
+            localStorage.setItem(searchEngineKey, searchEngine);
+          } catch (error) {
+            showStatus("Could not save search engine: " + error.message);
+          }
+          searchEngineSelect.value = searchEngine;
+          updateAddressSearchText();
+        });
         const pageStatus = status;
         const addressInput = document.querySelector("#address-input");
         const tabList = document.querySelector("#tab-list");
@@ -1319,7 +1513,7 @@ syncCloakForm();
           const http = /^https?:\/\//i.test(input);
           const other = /^[a-zA-Z][a-zA-Z\d+.-]*:(?!\d+(?:[/?#]|$))/.test(input) && !http;
           if (other && !/\s/.test(input)) throw new Error("Only http and https websites can be opened.");
-          if (!http && (/\s/.test(input) || !looksLikeAddress(input))) return `https://html.duckduckgo.com/html/?q=${encodeURIComponent(input)}`;
+          if (!http && (/\s/.test(input) || !looksLikeAddress(input))) return `${searchEngines[searchEngine].template}${encodeURIComponent(input)}`;
           const url = new URL(http ? input : `https://${input}`);
           if (!["http:", "https:"].includes(url.protocol)) throw new Error("Only http and https websites can be opened.");
           return url.href;
