@@ -4,13 +4,13 @@
   color-scheme: light;
   font-family: "Manrope", "Trebuchet MS", sans-serif;
   color: #243247;
-  background: #e9eef2;
+  background: #e3ede5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --ink: #243247;
   --muted: #7a8796;
   --line: #d8e0e7;
-  --blue: #347ca4;
+  --blue: #b3402f;
   --blue-dark: #276485;
   --green: #55a880;
   --shell: #f7f9fa;
@@ -31,8 +31,8 @@ body {
   min-width: 320px;
   min-height: 0;
   margin: 0;
-  background-color: #e9eef2;
-  background-image: radial-gradient(#cfd9df 0.65px, transparent 0.65px);
+  background-color: #e3ede5;
+  background-image: radial-gradient(#c3d4c8 0.65px, transparent 0.65px);
   background-size: 18px 18px;
 }
 
@@ -180,7 +180,7 @@ button {
 .chrome-icon-button:hover:not(:disabled),
 .bookmark-button:hover,
 .go-button:hover {
-  color: #266486;
+  color: #92261c;
   background: #e5edf2;
 }
 
@@ -243,7 +243,7 @@ button {
 
 .omnibox:focus-within {
   background: #fff;
-  border-color: #83abc0;
+  border-color: #cf8d80;
   box-shadow: 0 0 0 3px rgba(67, 132, 164, 0.12);
 }
 
@@ -292,12 +292,12 @@ button {
   height: 36px;
   flex: 0 0 auto;
   color: #fff;
-  background: #3981a2;
+  background: #b3402f;
 }
 
 .go-button:hover {
   color: white;
-  background: #286687;
+  background: #92261c;
 }
 
 .go-button .icon {
@@ -331,7 +331,7 @@ button {
 
 .browser-menu-wrap { position: relative; flex: 0 0 auto; }
 .menu-toggle .icon { width: 19px; height: 19px; }
-.menu-toggle[aria-expanded="true"] { color: #266486; background: #e5edf2; }
+.menu-toggle[aria-expanded="true"] { color: #92261c; background: #e5edf2; }
 .browser-menu { position: absolute; z-index: 40; top: calc(100% + 7px); right: 0; width: 260px; max-height: min(70vh, 560px); padding: 6px; overflow-y: auto; color: #344459; background: #fff; border: 1px solid #dce4e9; border-radius: 7px; box-shadow: 0 12px 34px rgba(28, 43, 55, 0.22); }
 .browser-menu > button { width: 100%; min-height: 37px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 10px; color: inherit; background: transparent; border: 0; border-radius: 4px; text-align: left; font-size: 11px; cursor: pointer; }
 .browser-menu > button:hover { background: #edf3f6; }
@@ -357,7 +357,7 @@ button {
 .history-view-header h1 { margin: 0; color: #293b4e; font-size: 24px; }
 .history-view-actions { display: flex; align-items: center; gap: 6px; }
 .history-view-actions input { width: min(35vw, 260px); height: 34px; padding: 0 10px; color: #344459; background: #f5f8fa; border: 1px solid #dfe6eb; border-radius: 5px; outline: none; font-family: "DM Mono", monospace; font-size: 10px; }
-.history-view-actions input:focus { border-color: #83abc0; box-shadow: 0 0 0 3px rgba(67, 132, 164, 0.12); }
+.history-view-actions input:focus { border-color: #cf8d80; box-shadow: 0 0 0 3px rgba(67, 132, 164, 0.12); }
 .history-view-list { width: min(780px, 100%); margin: 16px auto 0; }
 .history-view-status { width: min(780px, 100%); margin: 14px auto 0; color: #82909d; font-size: 11px; }
 .history-entry { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 3px; color: inherit; border-bottom: 1px solid #edf0f2; text-decoration: none; }
@@ -408,7 +408,7 @@ button {
 }
 
 .bookmark-link:hover {
-  color: #286687;
+  color: #92261c;
   background: #edf3f6;
 }
 
@@ -448,7 +448,7 @@ button {
   flex: 1;
   overflow: hidden;
   background-color: #dfe7eb;
-  background-image: linear-gradient(45deg, #e7edf0 25%, transparent 25%), linear-gradient(-45deg, #e7edf0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e7edf0 75%), linear-gradient(-45deg, transparent 75%, #e7edf0 75%);
+  background-image: linear-gradient(45deg, #e2ece5 25%, transparent 25%), linear-gradient(-45deg, #e2ece5 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2ece5 75%), linear-gradient(-45deg, transparent 75%, #e2ece5 75%);
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
   background-size: 16px 16px;
   scrollbar-color: #b8c4cc transparent;
@@ -482,7 +482,7 @@ button {
   padding: 32px 20px;
   overflow: auto;
   background-color: #fff;
-  background-image: radial-gradient(#e7edf0 0.7px, transparent 0.7px);
+  background-image: radial-gradient(#e2ece5 0.7px, transparent 0.7px);
   background-size: 18px 18px;
 }
 
@@ -539,7 +539,7 @@ button {
 }
 
 .quick-link:hover {
-  color: #246384;
+  color: #92261c;
 }
 
 .quick-link-mark {
@@ -615,7 +615,7 @@ button {
   width: 22px;
   height: 22px;
   border: 2px solid #dce7ec;
-  border-top-color: #3981a2;
+  border-top-color: #b3402f;
   border-radius: 50%;
   animation: spin 750ms linear infinite;
 }
@@ -810,3 +810,11 @@ body.private-mode {
     transition-duration: 0.01ms !important;
   }
 }
+.christmas-snow{position:fixed;z-index:4;inset:0;pointer-events:none;overflow:hidden}
+.christmas-snow::before,.christmas-snow::after{content:"";position:absolute;inset:0}
+.christmas-snow::before{background-image:radial-gradient(circle,#fff 1.3px,rgba(255,255,255,0) 1.9px);background-size:56px 56px;opacity:.9;animation:snow-fall-a 8s linear infinite}
+.christmas-snow::after{background-image:radial-gradient(circle,rgba(255,255,255,.85) 1px,rgba(255,255,255,0) 1.7px);background-size:34px 34px;opacity:.7;animation:snow-fall-b 12s linear infinite}
+@keyframes snow-fall-a{from{background-position:8px 0}to{background-position:8px 56px}}
+@keyframes snow-fall-b{from{background-position:-6px 0}to{background-position:28px 34px}}
+:root{--santa-hat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M15 45 C 18 28, 26 12, 44 9 C 52 8, 54 14, 49 19 C 38 28, 32 36, 30 45 Z' fill='%23c8393b'/%3E%3Crect x='9' y='42' width='40' height='9' rx='4.5' fill='%23ffffff'/%3E%3Ccircle cx='50' cy='13' r='6' fill='%23ffffff'/%3E%3C/svg%3E")}
+@media(prefers-reduced-motion:reduce){.christmas-snow::before,.christmas-snow::after{animation:none}}

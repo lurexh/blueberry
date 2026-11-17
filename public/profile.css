@@ -4,13 +4,13 @@
   color-scheme: light;
   font-family: "Manrope", "Trebuchet MS", sans-serif;
   color: #243247;
-  background: #e9eef2;
+  background: #e3ede5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --ink: #243247;
   --muted: #758494;
   --line: #dbe3e9;
-  --blue: #347ca4;
+  --blue: #b3402f;
   --surface: #fff;
 }
 
@@ -21,7 +21,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
-  background: radial-gradient(#cfd9df 0.65px, transparent 0.65px) #e9eef2;
+  background: radial-gradient(#c3d4c8 0.65px, transparent 0.65px) #e3ede5;
   background-size: 18px 18px;
 }
 
@@ -60,13 +60,13 @@ button { -webkit-tap-highlight-color: transparent; }
 .form-stack input,
 .display-name-form input { width: 100%; min-width: 0; height: 40px; padding: 0 11px; color: var(--ink); background: #f8fafb; border: 1px solid #dfe6eb; border-radius: 5px; outline: 0; font-family: "DM Mono", monospace; font-size: 11px; }
 .form-stack input:focus,
-.display-name-form input:focus { border-color: #83abc0; box-shadow: 0 0 0 3px rgba(67, 132, 164, 0.12); }
+.display-name-form input:focus { border-color: #cf8d80; box-shadow: 0 0 0 3px rgba(67, 132, 164, 0.12); }
 .primary-button,
 .secondary-button,
 .quiet-button,
 .danger-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 5px; cursor: pointer; }
-.primary-button { min-height: 41px; color: #fff; background: #3981a2; border: 0; font-size: 12px; font-weight: 700; }
-.primary-button:hover { background: #286687; }
+.primary-button { min-height: 41px; color: #fff; background: #b3402f; border: 0; font-size: 12px; font-weight: 700; }
+.primary-button:hover { background: #92261c; }
 .primary-button:disabled,
 .secondary-button:disabled,
 .danger-button:disabled { cursor: wait; opacity: 0.6; }
@@ -96,12 +96,12 @@ button { -webkit-tap-highlight-color: transparent; }
 .history-heading p { margin: 4px 0 0; color: #8794a1; font-size: 9px; }
 .history-actions { display: flex; align-items: center; gap: 7px; }
 .history-toggle { display: inline-flex; align-items: center; gap: 5px; color: #65788b; font-size: 9px; cursor: pointer; }
-.history-toggle input { accent-color: #3981a2; }
+.history-toggle input { accent-color: #b3402f; }
 .history-status { margin: 13px 0 0; color: #8794a1; font-size: 10px; }
 .history-list { display: grid; margin-top: 6px; }
 .history-item { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; color: inherit; border-bottom: 1px solid #edf0f2; text-decoration: none; }
 .history-item:last-child { border-bottom: 0; }
-.history-item:hover .history-item-details strong { color: #286687; }
+.history-item:hover .history-item-details strong { color: #92261c; }
 .history-item-details { min-width: 0; display: grid; gap: 3px; }
 .history-item-details strong,
 .history-item-details span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -135,8 +135,20 @@ button { -webkit-tap-highlight-color: transparent; }
 .cloak-grid input,
 .cloak-grid select { width: 100%; min-width: 0; height: 40px; padding: 0 11px; color: var(--ink); background: #f8fafb; border: 1px solid #dfe6eb; border-radius: 5px; outline: 0; font-family: "DM Mono", monospace; font-size: 11px; }
 .cloak-grid input:focus,
-.cloak-grid select:focus { border-color: #83abc0; box-shadow: 0 0 0 3px rgba(67, 132, 164, 0.12); }
+.cloak-grid select:focus { border-color: #cf8d80; box-shadow: 0 0 0 3px rgba(67, 132, 164, 0.12); }
 .cloak-swallow { margin: 4px 0 10px; }
 .cloak-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .cloak-actions .primary-button { min-height: 33px; padding: 0 14px; }
 .cloak-status { margin: 10px 0 0; color: #5d7184; font-size: 10px; }
+
+.christmas-snow{position:fixed;z-index:4;inset:0;pointer-events:none;overflow:hidden}
+.christmas-snow::before,.christmas-snow::after{content:"";position:absolute;inset:0}
+.christmas-snow::before{background-image:radial-gradient(circle,#fff 1.3px,rgba(255,255,255,0) 1.9px);background-size:56px 56px;opacity:.9;animation:snow-fall-a 8s linear infinite}
+.christmas-snow::after{background-image:radial-gradient(circle,rgba(255,255,255,.85) 1px,rgba(255,255,255,0) 1.7px);background-size:34px 34px;opacity:.7;animation:snow-fall-b 12s linear infinite}
+@keyframes snow-fall-a{from{background-position:8px 0}to{background-position:8px 56px}}
+@keyframes snow-fall-b{from{background-position:-6px 0}to{background-position:28px 34px}}
+:root{--santa-hat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M15 45 C 18 28, 26 12, 44 9 C 52 8, 54 14, 49 19 C 38 28, 32 36, 30 45 Z' fill='%23c8393b'/%3E%3Crect x='9' y='42' width='40' height='9' rx='4.5' fill='%23ffffff'/%3E%3Ccircle cx='50' cy='13' r='6' fill='%23ffffff'/%3E%3C/svg%3E")}
+@media(prefers-reduced-motion:reduce){.christmas-snow::before,.christmas-snow::after{animation:none}}
+
+.profile-mark{position:relative}
+.profile-mark::after{content:"";position:absolute;z-index:3;top:-8px;right:-10px;width:34px;height:34px;background:var(--santa-hat) center/contain no-repeat;transform:rotate(16deg);pointer-events:none}

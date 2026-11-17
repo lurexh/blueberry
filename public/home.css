@@ -4,12 +4,12 @@
   color-scheme: light;
   font-family: "Manrope", "Trebuchet MS", sans-serif;
   color: #243247;
-  background: #e9eef2;
+  background: #e3ede5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --text: #243247;
   --muted: #7a8796;
-  --accent: #347ca4;
+  --accent: #b3402f;
 }
 
 * {
@@ -28,7 +28,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   overflow: hidden;
-  background-color: #e9eef2;
+  background-color: #e3ede5;
   background-image: linear-gradient(rgba(56, 78, 92, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 78, 92, 0.035) 1px, transparent 1px);
   background-size: 38px 38px;
 }
@@ -128,7 +128,7 @@ a {
 }
 
 .menu-option:hover:not(:disabled) {
-  color: #245e7c;
+  color: #9d3a2c;
   background: rgba(255, 255, 255, 0.72);
   transform: translateY(-3px);
 }
@@ -152,7 +152,7 @@ a {
   top: 1.5%;
   left: 50%;
   transform: translateX(-50%);
-  color: #275f7b;
+  color: #9d3a2c;
 }
 
 .browser-option:hover:not(:disabled) {
@@ -382,7 +382,7 @@ a {
 }
 
 .private-default input:checked {
-  background: #3981a2;
+  background: #b3402f;
 }
 
 .private-default input:checked::before {
@@ -390,10 +390,21 @@ a {
 }
 
 .private-default input:focus-visible {
-  outline: 2px solid #347ca4;
+  outline: 2px solid #b3402f;
   outline-offset: 3px;
 }
 
 @media (max-width: 560px) {
   .private-default { right: 12px; bottom: 12px; min-height: 40px; }
 }
+.christmas-snow{position:fixed;z-index:4;inset:0;pointer-events:none;overflow:hidden}
+.christmas-snow::before,.christmas-snow::after{content:"";position:absolute;inset:0}
+.christmas-snow::before{background-image:radial-gradient(circle,#fff 1.3px,rgba(255,255,255,0) 1.9px);background-size:56px 56px;opacity:.9;animation:snow-fall-a 8s linear infinite}
+.christmas-snow::after{background-image:radial-gradient(circle,rgba(255,255,255,.85) 1px,rgba(255,255,255,0) 1.7px);background-size:34px 34px;opacity:.7;animation:snow-fall-b 12s linear infinite}
+@keyframes snow-fall-a{from{background-position:8px 0}to{background-position:8px 56px}}
+@keyframes snow-fall-b{from{background-position:-6px 0}to{background-position:28px 34px}}
+:root{--santa-hat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M15 45 C 18 28, 26 12, 44 9 C 52 8, 54 14, 49 19 C 38 28, 32 36, 30 45 Z' fill='%23c8393b'/%3E%3Crect x='9' y='42' width='40' height='9' rx='4.5' fill='%23ffffff'/%3E%3Ccircle cx='50' cy='13' r='6' fill='%23ffffff'/%3E%3C/svg%3E")}
+@media(prefers-reduced-motion:reduce){.christmas-snow::before,.christmas-snow::after{animation:none}}
+
+.logo-frame{position:relative}
+.logo-frame::after{content:"";position:absolute;z-index:3;top:-14px;right:-10px;width:46px;height:46px;background:var(--santa-hat) center/contain no-repeat;transform:rotate(16deg);pointer-events:none}
