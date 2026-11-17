@@ -230,8 +230,87 @@ document.querySelector("#clear-history-button").addEventListener("click", async 
   await loadHistory(currentUser.id);
 });
 
-async function initialize() {
-  if (!config?.url || !config?.publishableKey || !window.supabase?.createClient) {
+const cloakApi = window.BLUEBERRY_CLOAK;
+const cloakEnabledInput = document.querySelector("#cloak-enabled");
+const cloakPresetSelect = document.querySelector("#cloak-preset");
+const cloakOpenButton = document.querySelector("#cloak-open-button");
+const cloakSaveButton = document.querySelector("#cloak-save-button");
+const cloakTestButton = document.querySelector("#cloak-test-button");
+const cloakSwallowInput = document.querySelector("#cloak-swallow");
+const cloakStatus = document.querySelector("#cloak-status");
+
+function cloakFillPresetSelect() {
+  if (!cloakApi || !cloakPresetSelect) return;
+  cloakPresetSelect.replaceChildren();
+  for (const [id, preset] of Object.entries(cloakApi.presets)) {
+    const option = document.createElement("option");
+    option.value = id;
+    option.textContent = preset.name;
+    cloakPresetSelect.append(option);
+  }
+  cloakPresetSelect.value = cloakApi.cloak.preset;
+  const customOption = document.createElement("option");
+  customOption.value = "custom";
+  customOption.textContent = "Custom";
+  cloakPresetSelect.append(customOption);
+}
+
+function cloakShowStatus(message) {
+  if (cloakStatus) cloakStatus.textContent = message;
+}
+
+function cloakReadForm() {
+  if (!cloakApi) return;
+  const api = cloakApi.cloak;
+  api.panicKey = document.querySelector("#cloak-panic-key").value.trim() || "`";
+  api.panicUrl = document.querySelector("#cloak-panic-url").value;
+  api.customTitle = document.querySelector("#cloak-custom-title").value;
+  api.customIcon = document.querySelector("#cloak-custom-icon").value;
+  api.swallow = cloakSwallowInput.checked;
+}
+
+if (cloakApi && cloakEnabledInput) {
+  cloakFillPresetSelect();
+  cloakEnabledInput.checked = cloakApi.cloak.enabled && cloakApi.cloak.preset !== "none";
+  cloakSwallowInput.checked = cloakApi.cloak.swallow;
+  document.querySelector("#cloak-panic-key").value = cloakApi.cloak.panicKey;
+  document.querySelector("#cloak-panic-url").value = cloakApi.cloak.panicUrl;
+  document.querySelector("#cloak-custom-title").value = cloakApi.cloak.customTitle;
+  document.querySelector("#cloak-custom-icon").value = cloakApi.cloak.customIcon;
+
+  cloakPresetSelect.addEventListener("change", () => {
+    cloakApi.cloak.preset = cloakPresetSelect.value;
+    cloakEnabledInput.checked = cloakApi.cloak.enabled && cloakPresetSelect.value !== "none";
+    cloakShowStatus(`Preset set to ${cloakPresetSelect.selectedOptions[0].textContent}.`);
+  });
+
+  cloakEnabledInput.addEventListener("change", () => {
+    cloakApi.cloak.enabled = cloakEnabledInput.checked;
+    cloakShowStatus(cloakEnabledInput.checked
+      ? "Auto-open is on. The cloak opens on your next visit."
+      : "Auto-open is off.");
+  });
+
+  cloakOpenButton.addEventListener("click", () => {
+    cloakReadForm();
+    const win = cloakApi.open();
+    cloakShowStatus(win ? "Cloak opened in a new tab." : "Your browser blocked the popup — allow popups for this site.");
+  });
+
+  cloakSaveButton.addEventListener("click", () => {
+    cloakReadForm();
+    cloakApi.cloak.enabled = cloakEnabledInput.checked;
+    cloakShowStatus("Cloaker settings saved.");
+  });
+
+  cloakTestButton.addEventListener("click", () => {
+    cloakReadForm();
+    cloakApi.applyTab();
+    cloakShowStatus("This tab's title and icon now use the cloak.");
+  });
+}
+
+async function initialize() {  if (!config?.url || !config?.publishableKey || !window.supabase?.createClient) {
     authPanel.hidden = true;
     showNotice("Profile feature not added yet, being added for version 0.0.2.", "error");
     return;
