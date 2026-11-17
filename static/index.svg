@@ -412,7 +412,7 @@
                     <div class="credits-row"><span data-i18n="about.creator">Creator</span><span>Christian Hall</span></div>
                     <div class="credits-row"><span data-i18n="about.proxy">Proxy runtime</span><a href="https://www.npmjs.com/package/@mercuryworkshop/proxy-bootstrap" target="_blank" rel="noopener noreferrer">MercuryWorkshop / Scramjet</a></div>
                     <div class="credits-row"><span data-i18n="about.transport">Transport</span><a href="https://www.npmjs.com/package/@mercuryworkshop/epoxy-transport" target="_blank" rel="noopener noreferrer">MercuryWorkshop / Epoxy</a></div>
-                    <div class="credits-row"><span data-i18n="about.source">Source code</span><a href="https://github.com/debugfr/blueberry" target="_blank" rel="noopener noreferrer">debugfr/blueberry</a></div>
+                    <div class="credits-row"><span data-i18n="about.source">Source code</span><a href="https://github.com/lurexh/blueberry" target="_blank" rel="noopener noreferrer">lurexh/blueberry</a></div>
                   </div>
                 </section>
               </div>

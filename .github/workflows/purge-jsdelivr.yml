@@ -26,10 +26,10 @@ jobs:
           import time
           import urllib.request
 
-          cdn_url = "https://cdn.jsdelivr.net/gh/debugfr/blueberry@main/static/index.svg"
-          source_url = "https://raw.githubusercontent.com/debugfr/blueberry/main/static/index.svg"
-          purge_url = "https://purge.jsdelivr.net/gh/debugfr/blueberry@main/static/index.svg"
-          path = "/gh/debugfr/blueberry@main/static/index.svg"
+          cdn_url = "https://cdn.jsdelivr.net/gh/lurexh/blueberry@main/static/index.svg"
+          source_url = "https://raw.githubusercontent.com/lurexh/blueberry/main/static/index.svg"
+          purge_url = "https://purge.jsdelivr.net/gh/lurexh/blueberry@main/static/index.svg"
+          path = "/gh/lurexh/blueberry@main/static/index.svg"
 
           def fetch(url):
               request = urllib.request.Request(url, headers={"User-Agent": "BlueberryUB cache refresh"})

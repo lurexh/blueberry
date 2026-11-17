@@ -69,8 +69,8 @@ static app so they work from the versioned jsDelivr URL.
 ## Deploy
 
 Push changes to `main`, then purge the jsDelivr cache at
-<https://purge.jsdelivr.net/gh/debugfr/blueberry@main/static/index.svg>.
-Open <https://cdn.jsdelivr.net/gh/debugfr/blueberry@main/static/index.svg>.
+<https://purge.jsdelivr.net/gh/lurexh/blueberry@main/static/index.svg>.
+Open <https://cdn.jsdelivr.net/gh/lurexh/blueberry@main/static/index.svg>.
 The `Purge jsDelivr cache` GitHub Actions workflow also checks and refreshes the
 stable URL after each push, every six hours, and on manual dispatch. It compares
 the served SVG against GitHub's current `main`, retries throttled purges, and
@@ -78,6 +78,6 @@ verifies the CDN content before succeeding.
 
 For a cache-independent, automatically deployed URL, the `Deploy static browser
 to GitHub Pages` workflow publishes `static/` after changes to `main`. Open
-<https://debugfr.github.io/blueberry/static/index.svg> after its first successful
+<https://lurexh.github.io/blueberry/static/index.svg> after its first successful
 deployment. Do not use the `raw.githubusercontent.com` file URL as an app host:
 GitHub serves raw files with a sandbox policy that blocks the app's scripts.
