@@ -22,7 +22,7 @@ importScripts(file("uv/uv.sw.js"));
 const ultraviolet = new UVServiceWorker();
 
 async function serveAppAsHtml(request) {
-  const response = await fetch(request);
+  const response = await fetch(request, { cache: "reload" });
   if (!response.ok) return response;
   const source = await response.text();
   const foreignObject = source.match(/<foreignObject\b[^>]*>([\s\S]*?)<\/foreignObject>/i);

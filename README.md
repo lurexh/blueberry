@@ -71,17 +71,19 @@ easter eggs: the Konami code and clicking the hub logo seven times quickly.
 
 ## Deploy
 
-The stable link to share is the GitHub Pages URL:
-<https://lurexh.github.io/blueberry/static/index.svg>. The `Deploy static
-browser to GitHub Pages` workflow publishes `static/` after every push to
-`main`, and Pages uses a short cache so updates appear within minutes.
+The stable link to share is the jsDelivr URL:
+<https://cdn.jsdelivr.net/gh/lurexh/blueberry@main/static/index.svg>. GitHub
+Pages (<https://lurexh.github.io/blueberry/static/index.svg>, published by the
+`Deploy static browser to GitHub Pages` workflow after every push) also serves
+the same build with a short cache, but school filters such as Lightspeed or
+Linewave commonly block github.io, so treat Pages as a backup.
 
-The jsDelivr URL <https://cdn.jsdelivr.net/gh/lurexh/blueberry@main/static/index.svg>
-also works, but jsDelivr sends a 7-day browser cache header on `@main` links,
-so browsers keep serving their old copy even after the CDN is purged. The
+jsDelivr sends a 7-day browser cache header on `@main` links, but the app's
+service worker re-fetches the SVG with `cache: "reload"` on every visit once
+it is active, so browsers self-update from the second visit onward. The
 `Purge jsDelivr cache` workflow refreshes the CDN after each push, every six
 hours, and on manual dispatch (it retries throttled purges and verifies the
-result), but readers may still need a hard refresh or a `?v=N` cache-busting
-query to see the newest build. Do not use the `raw.githubusercontent.com` file
-URL as an app host: GitHub serves raw files with a sandbox policy that blocks
-the app's scripts.
+result). First-time visitors whose browser cached an older copy can still see
+stale content until a hard refresh or a `?v=N` cache-busting query. Do not use
+the `raw.githubusercontent.com` file URL as an app host: GitHub serves raw
+files with a sandbox policy that blocks the app's scripts.
