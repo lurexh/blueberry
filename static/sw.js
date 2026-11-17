@@ -1,5 +1,6 @@
 const scope = self.registration.scope;
 const file = (path) => new URL(path, scope).href;
+const ownBase = new URL("./", self.location.href).href;
 
 addEventListener("install", (event) => event.waitUntil(self.skipWaiting()));
 addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
@@ -22,7 +23,12 @@ importScripts(file("uv/uv.sw.js"));
 const ultraviolet = new UVServiceWorker();
 
 async function serveAppAsHtml(request) {
-  const response = await fetch(request, { cache: "reload" });
+  let appUrl = new URL(request.url);
+  const rollingPattern = /^\/gh\/lurexh\/blueberry@main\//;
+  if (appUrl.origin === new URL(ownBase).origin && rollingPattern.test(appUrl.pathname)) {
+    appUrl = new URL(appUrl.pathname.replace(rollingPattern, new URL(ownBase).pathname), appUrl.origin);
+  }
+  const response = await fetch(appUrl, { cache: "reload" });
   if (!response.ok) return response;
   const source = await response.text();
   const foreignObject = source.match(/<foreignObject\b[^>]*>([\s\S]*?)<\/foreignObject>/i);

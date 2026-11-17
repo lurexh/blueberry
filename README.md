@@ -78,12 +78,17 @@ Pages (<https://lurexh.github.io/blueberry/static/index.svg>, published by the
 the same build with a short cache, but school filters such as Lightspeed or
 Linewave commonly block github.io, so treat Pages as a backup.
 
-jsDelivr sends a 7-day browser cache header on `@main` links, but the app's
-service worker re-fetches the SVG with `cache: "reload"` on every visit once
-it is active, so browsers self-update from the second visit onward. The
-`Purge jsDelivr cache` workflow refreshes the CDN after each push, every six
-hours, and on manual dispatch (it retries throttled purges and verifies the
-result). First-time visitors whose browser cached an older copy can still see
+jsDelivr edge caches can serve different commits of `@main` files at the same
+time, which once made the service worker fail to install (mixed runtime
+versions). The app now resolves the current commit SHA from the GitHub API,
+caches it for two hours in localStorage, and registers the service worker from
+the immutable `@<sha>` URL, so the worker and every runtime file it imports
+always come from one consistent commit; the worker also serves the app shell
+from its own commit. If pinning or registration fails, the app falls back to
+the rolling `@main` URL automatically. The `Purge jsDelivr cache` workflow
+still refreshes the CDN after each push and on a schedule (it retries
+throttled purges and verifies the result). First-time visitors whose browser
+cached an older copy can still see
 stale content until a hard refresh or a `?v=N` cache-busting query. Do not use
 the `raw.githubusercontent.com` file URL as an app host: GitHub serves raw
 files with a sandbox policy that blocks the app's scripts.
