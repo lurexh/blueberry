@@ -37,37 +37,8 @@ let tabs = [];
 let activeTab;
 let nextTabId = 1;
 let restoringSession = false;
-let historyClient;
-let historyUser = null;
-let historyEnabled = false;
-let historyReady = Promise.resolve();
 let privateMode = new URLSearchParams(window.location.search).get("private") === "1";
 let recentlyClosedTabs = readSessionValue(recentlyClosedKey, []);
-
-async function syncHistoryUser(user) {
-  historyUser = user ?? null;
-  historyEnabled = false;
-  if (!historyClient || !historyUser) return;
-
-  const { data, error } = await historyClient
-    .from("profiles")
-    .select("history_enabled")
-    .eq("user_id", historyUser.id)
-    .maybeSingle();
-  historyEnabled = !error && data?.history_enabled !== false && localStorage.getItem(historyPreferenceKey) !== "false";
-}
-
-async function initializeHistory() {
-  const config = window.BLUEBERRY_SUPABASE_CONFIG;
-  if (!config?.url || !config?.publishableKey || !window.supabase?.createClient) return;
-
-  historyClient = window.supabase.createClient(config.url, config.publishableKey);
-  const { data } = await historyClient.auth.getSession();
-  await syncHistoryUser(data.session?.user);
-  historyClient.auth.onAuthStateChange((_event, session) => {
-    window.setTimeout(() => void syncHistoryUser(session?.user), 0);
-  });
-}
 
 function readSessionValue(key, fallback) {
   try {
@@ -99,7 +70,6 @@ function persistTabSession() {
 }
 
 async function recordVisit(tab, value) {
-  await historyReady;
   if (privateMode || tab.isPrivate || localStorage.getItem(historyPreferenceKey) === "false") return;
   let url;
   try {
@@ -115,27 +85,22 @@ async function recordVisit(tab, value) {
   tab.lastHistoryUrl = canonicalUrl;
   tab.lastHistoryAt = now;
 
-  if (historyUser && historyClient) {
-    if (!historyEnabled) return;
-    const { error } = await historyClient.from("browser_history").insert({
-      user_id: historyUser.id,
-      url: canonicalUrl,
-      title: tab.name || url.hostname,
-    });
-    if (error && error.code !== "PGRST205" && error.code !== "42P01") console.warn("Could not save browser history.");
-  } else {
-    const entries = readSessionValue(guestHistoryKey, []);
-    entries.unshift({ url: canonicalUrl, title: tab.name || url.hostname, visited_at: new Date().toISOString() });
-    const unique = entries.filter((entry, index) => entries.findIndex((candidate) => candidate.url === entry.url) === index).slice(0, 100);
-    writeSessionValue(guestHistoryKey, unique);
+  const entries = readSessionValue(guestHistoryKey, []);
+  entries.unshift({ url: canonicalUrl, title: tab.name || url.hostname, visited_at: new Date().toISOString() });
+  const unique = entries.filter((entry, index) => entries.findIndex((candidate) => candidate.url === entry.url) === index).slice(0, 100);
+  writeSessionValue(guestHistoryKey, unique);
+
+  try {
+    const saved = JSON.parse(localStorage.getItem("blueberryub.local-history") || "[]");
+    if (Array.isArray(saved)) {
+      saved.unshift({ url: canonicalUrl, title: tab.name || url.hostname, visited_at: new Date().toISOString() });
+      const savedUnique = saved.filter((entry, index) => saved.findIndex((candidate) => candidate.url === entry.url) === index).slice(0, 100);
+      localStorage.setItem("blueberryub.local-history", JSON.stringify(savedUnique));
+    }
+  } catch {
+    return;
   }
 }
-
-window.addEventListener("storage", (event) => {
-  if (event.key === historyPreferenceKey) {
-    historyEnabled = Boolean(historyUser) && event.newValue !== "false";
-  }
-});
 
 function makeIcon(name, className = "icon") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -707,7 +672,6 @@ document.addEventListener("keydown", (event) => {
 
 renderBookmarks();
 applyPrivateMode();
-void initializeHistory();
 createTab();
 
 const initialUrl = new URL(window.location.href).searchParams.get("goto");

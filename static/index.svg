@@ -349,7 +349,7 @@
                   <label class="setting-field" for="proxy-engine"><span data-i18n="proxy.engine">Proxy engine</span>
                     <select id="proxy-engine">
                       <option value="scramjet">Scramjet (default)</option>
-                      <option value="ultraviolet" disabled="disabled">Ultraviolet (WIP)</option>
+                      <option value="ultraviolet">Ultraviolet</option>
                     </select>
                   </label>
                   <p class="settings-help" data-i18n="proxy.uv-help">Ultraviolet is a work in progress and is unavailable for now.</p>
@@ -1128,7 +1128,7 @@ syncCloakForm();
         settingsEngine.addEventListener("change", syncSettingsForm);
         document.querySelector("#settings-apply").addEventListener("click", () => {
           const nextSettings = {
-            engine: "scramjet",
+            engine: settingsEngine.value === "ultraviolet" ? "ultraviolet" : "scramjet",
             transport: settingsEpoxy.checked ? "epoxy" : "libcurl"
           };
           try {
@@ -1200,7 +1200,7 @@ syncCloakForm();
           try {
             const value = JSON.parse(localStorage.getItem(proxySettingsKey) || "null");
             return {
-              engine: "scramjet",
+              engine: value?.engine === "ultraviolet" ? "ultraviolet" : "scramjet",
               transport: value?.transport === "epoxy" ? "epoxy" : "libcurl"
             };
           } catch (error) {

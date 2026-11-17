@@ -10,7 +10,6 @@
   "dependencies": {
     "@mercuryworkshop/epoxy-transport": "3.0.2",
     "@mercuryworkshop/proxy-bootstrap": "0.0.5",
-    "@supabase/supabase-js": "^2.118.0",
     "@titaniumnetwork-dev/ultraviolet": "3.2.10",
     "express": "4.21.2"
   }

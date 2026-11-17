@@ -1,80 +1,41 @@
-const config = window.BLUEBERRY_SUPABASE_CONFIG;
-const notice = document.querySelector("#notice");
-const authPanel = document.querySelector("#auth-panel");
-const accountPanel = document.querySelector("#account-panel");
-const authForm = document.querySelector("#auth-form");
-const signinTab = document.querySelector("#signin-tab");
-const signupTab = document.querySelector("#signup-tab");
-const displayNameField = document.querySelector("#display-name-field");
-const authSubmit = document.querySelector("#auth-submit");
-const setupGuide = document.querySelector("#setup-guide");
 const profileForm = document.querySelector("#profile-form");
+const displayNameInput = document.querySelector("#profile-display-name");
+const accountName = document.querySelector("#account-name");
 const historyEnabledInput = document.querySelector("#history-enabled");
 const historyStatus = document.querySelector("#history-status");
 const historyList = document.querySelector("#history-list");
+const clearHistoryButton = document.querySelector("#clear-history-button");
 
-let client;
-let mode = "signin";
-let currentUser;
+const displayNameKey = "blueberryub.display-name";
+const localHistoryKey = "blueberryub.local-history";
 const historyPreferenceKey = "blueberryub.history-enabled";
 
-function showNotice(message, kind = "info") {
-  notice.textContent = message;
-  notice.dataset.kind = kind;
-  notice.hidden = !message;
-}
-
-function setMode(nextMode) {
-  mode = nextMode;
-  const signingUp = mode === "signup";
-  signinTab.classList.toggle("is-active", !signingUp);
-  signupTab.classList.toggle("is-active", signingUp);
-  signinTab.setAttribute("aria-selected", String(!signingUp));
-  signupTab.setAttribute("aria-selected", String(signingUp));
-  displayNameField.hidden = !signingUp;
-  document.querySelector("#password").autocomplete = signingUp ? "new-password" : "current-password";
-  authSubmit.textContent = signingUp ? "Create account" : "Sign in";
-  showNotice("");
-}
-
-function setBusy(busy) {
-  for (const button of authForm.querySelectorAll("button")) button.disabled = busy;
-}
-
-function isMissingProfilesTable(error) {
-  return error?.code === "PGRST205" || error?.code === "42P01" ||
-    (error?.message || "").includes("public.profiles") && (error?.message || "").includes("schema cache");
-}
-
-function historyTableMissing(error) {
-  return error?.code === "PGRST205" || error?.code === "42P01" ||
-    (error?.message || "").includes("browser_history") && (error?.message || "").includes("schema cache");
-}
-
-async function loadHistory(userId) {
-  historyStatus.textContent = "Loading history…";
-  const { data, error } = await client
-    .from("browser_history")
-    .select("id, url, title, visited_at")
-    .eq("user_id", userId)
-    .order("visited_at", { ascending: false })
-    .limit(100);
-
-  historyList.replaceChildren();
-  if (error) {
-    historyStatus.textContent = historyTableMissing(error)
-      ? "Run the history migration from Supabase SQL Editor to enable browsing history."
-      : "Could not load browsing history.";
-    return;
+function readHistory() {
+  try {
+    const value = JSON.parse(localStorage.getItem(localHistoryKey) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
   }
+}
 
-  if (!data?.length) {
+function writeHistory(entries) {
+  try {
+    localStorage.setItem(localHistoryKey, JSON.stringify(entries.slice(0, 100)));
+  } catch (error) {
+    historyStatus.textContent = "Could not save history: " + error.message;
+  }
+}
+
+function renderHistory() {
+  historyList.replaceChildren();
+  const entries = readHistory();
+  if (!entries.length) {
     historyStatus.textContent = "No saved visits yet.";
     return;
   }
-
-  historyStatus.textContent = `${data.length} recent visits`;
-  for (const visit of data) {
+  historyStatus.textContent = `${entries.length} recent visits`;
+  for (const visit of entries) {
     const item = document.createElement("a");
     item.className = "history-item";
     item.href = `/browser.html?goto=${encodeURIComponent(visit.url)}`;
@@ -93,246 +54,36 @@ async function loadHistory(userId) {
   }
 }
 
-async function renderAccount(user) {
-  currentUser = user;
-  authPanel.hidden = true;
-  accountPanel.hidden = false;
-  document.querySelector("#account-email").textContent = user.email || "";
+function renderProfile() {
+  const name = localStorage.getItem(displayNameKey) || "Blueberry member";
+  accountName.textContent = name;
+  displayNameInput.value = localStorage.getItem(displayNameKey) || "";
+  historyEnabledInput.checked = localStorage.getItem(historyPreferenceKey) !== "false";
+  renderHistory();
+}
 
-  const { data: profile, error: profileError } = await client
-    .from("profiles")
-    .select("display_name, history_enabled")
-    .eq("user_id", user.id)
-    .maybeSingle();
+profileForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const name = displayNameInput.value.trim().slice(0, 40);
+  if (name) localStorage.setItem(displayNameKey, name);
+  else localStorage.removeItem(displayNameKey);
+  accountName.textContent = name || "Blueberry member";
+});
 
-  if (profileError) {
-    if (isMissingProfilesTable(profileError)) {
-      setupGuide.hidden = false;
-      profileForm.hidden = true;
-      showNotice("Your account signed in, but the BlueberryUB tables have not been created yet.", "error");
-      return;
-    }
-    showNotice(profileError.message || "Could not load your profile.", "error");
-    return;
-  }
-
-  setupGuide.hidden = true;
-  profileForm.hidden = false;
-
-  const name = profile?.display_name || user.user_metadata?.display_name || user.email?.split("@")[0] || "Blueberry member";
-  document.querySelector("#account-name").textContent = name;
-  document.querySelector("#profile-display-name").value = profile?.display_name || "";
-  historyEnabledInput.checked = profile?.history_enabled !== false;
+historyEnabledInput.addEventListener("change", () => {
   localStorage.setItem(historyPreferenceKey, String(historyEnabledInput.checked));
-  await loadHistory(user.id);
-}
-
-async function refreshSession() {
-  const { data, error } = await client.auth.getSession();
-  if (error) throw error;
-  if (data.session?.user) await renderAccount(data.session.user);
-  else {
-    currentUser = null;
-    accountPanel.hidden = true;
-    authPanel.hidden = false;
-  }
-}
-
-signinTab.addEventListener("click", () => setMode("signin"));
-signupTab.addEventListener("click", () => setMode("signup"));
-
-authForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  setBusy(true);
-  showNotice("");
-  const email = document.querySelector("#email").value.trim();
-  const password = document.querySelector("#password").value;
-  try {
-    if (mode === "signup") {
-      const displayName = document.querySelector("#display-name").value.trim();
-      const { data, error } = await client.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { display_name: displayName },
-          emailRedirectTo: `${window.location.origin}/profile.html`,
-        },
-      });
-      if (error) throw error;
-      if (data.session?.user) await renderAccount(data.session.user);
-      else showNotice("Check your email to confirm your account, then sign in.", "success");
-    } else {
-      const { data, error } = await client.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      await renderAccount(data.user);
-    }
-  } catch (error) {
-    showNotice(error.message || "Authentication failed.", "error");
-  } finally {
-    setBusy(false);
-  }
+  historyStatus.textContent = historyEnabledInput.checked
+    ? "History saving is on."
+    : "History saving is paused.";
 });
 
-document.querySelector("#signout-button").addEventListener("click", async () => {
-  const { error } = await client.auth.signOut();
-  if (error) showNotice(error.message, "error");
-  else {
-    showNotice("Signed out.", "success");
-    await refreshSession();
-  }
+clearHistoryButton.addEventListener("click", () => {
+  writeHistory([]);
+  renderHistory();
 });
 
-profileForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!currentUser) return;
-  const displayName = document.querySelector("#profile-display-name").value.trim();
-  const { error } = await client.from("profiles").update({ display_name: displayName }).eq("user_id", currentUser.id);
-  showNotice(error ? error.message : "Profile saved.", error ? "error" : "success");
-  if (!error) document.querySelector("#account-name").textContent = displayName || currentUser.email?.split("@")[0] || "Blueberry member";
+window.addEventListener("storage", (event) => {
+  if (event.key === localHistoryKey) renderHistory();
 });
 
-document.querySelector("#delete-account-button").addEventListener("click", async () => {
-  if (!currentUser || !window.confirm("Permanently delete your BlueberryUB account? This cannot be undone.")) return;
-  try {
-    const { error } = await client.functions.invoke("delete-account", { body: {} });
-    if (error) throw error;
-    await client.auth.signOut();
-    currentUser = null;
-    accountPanel.hidden = true;
-    localStorage.removeItem(historyPreferenceKey);
-    authPanel.hidden = false;
-    showNotice("Your account has been deleted.", "success");
-  } catch (error) {
-    showNotice(error.message || "Account deletion failed.", "error");
-  }
-});
-
-historyEnabledInput.addEventListener("change", async () => {
-  if (!currentUser) return;
-  const enabled = historyEnabledInput.checked;
-  const { error } = await client.from("profiles").update({ history_enabled: enabled }).eq("user_id", currentUser.id);
-  if (error) {
-    historyEnabledInput.checked = !enabled;
-    historyStatus.textContent = error.message || "Could not update history setting.";
-    return;
-  }
-  localStorage.setItem(historyPreferenceKey, String(enabled));
-  historyStatus.textContent = enabled ? "History saving is on." : "History saving is paused.";
-});
-
-document.querySelector("#clear-history-button").addEventListener("click", async () => {
-  if (!currentUser || !window.confirm("Clear all browsing history saved to this account?")) return;
-  const { error } = await client.from("browser_history").delete().eq("user_id", currentUser.id);
-  if (error) {
-    historyStatus.textContent = error.message || "Could not clear history.";
-    return;
-  }
-  await loadHistory(currentUser.id);
-});
-
-const cloakApi = window.BLUEBERRY_CLOAK;
-const cloakEnabledInput = document.querySelector("#cloak-enabled");
-const cloakPresetSelect = document.querySelector("#cloak-preset");
-const cloakOpenButton = document.querySelector("#cloak-open-button");
-const cloakSaveButton = document.querySelector("#cloak-save-button");
-const cloakTestButton = document.querySelector("#cloak-test-button");
-const cloakSwallowInput = document.querySelector("#cloak-swallow");
-const cloakStatus = document.querySelector("#cloak-status");
-
-function cloakFillPresetSelect() {
-  if (!cloakApi || !cloakPresetSelect) return;
-  cloakPresetSelect.replaceChildren();
-  for (const [id, preset] of Object.entries(cloakApi.presets)) {
-    const option = document.createElement("option");
-    option.value = id;
-    option.textContent = preset.name;
-    cloakPresetSelect.append(option);
-  }
-  cloakPresetSelect.value = cloakApi.cloak.preset;
-  const customOption = document.createElement("option");
-  customOption.value = "custom";
-  customOption.textContent = "Custom";
-  cloakPresetSelect.append(customOption);
-}
-
-function cloakShowStatus(message) {
-  if (cloakStatus) cloakStatus.textContent = message;
-}
-
-function cloakReadForm() {
-  if (!cloakApi) return;
-  const api = cloakApi.cloak;
-  api.panicKey = document.querySelector("#cloak-panic-key").value.trim() || "`";
-  api.panicUrl = document.querySelector("#cloak-panic-url").value;
-  api.customTitle = document.querySelector("#cloak-custom-title").value;
-  api.customIcon = document.querySelector("#cloak-custom-icon").value;
-  api.swallow = cloakSwallowInput.checked;
-}
-
-if (cloakApi && cloakEnabledInput) {
-  cloakFillPresetSelect();
-  cloakEnabledInput.checked = cloakApi.cloak.enabled && cloakApi.cloak.preset !== "none";
-  cloakSwallowInput.checked = cloakApi.cloak.swallow;
-  document.querySelector("#cloak-panic-key").value = cloakApi.cloak.panicKey;
-  document.querySelector("#cloak-panic-url").value = cloakApi.cloak.panicUrl;
-  document.querySelector("#cloak-custom-title").value = cloakApi.cloak.customTitle;
-  document.querySelector("#cloak-custom-icon").value = cloakApi.cloak.customIcon;
-
-  cloakPresetSelect.addEventListener("change", () => {
-    cloakApi.cloak.preset = cloakPresetSelect.value;
-    cloakEnabledInput.checked = cloakApi.cloak.enabled && cloakPresetSelect.value !== "none";
-    cloakShowStatus(`Preset set to ${cloakPresetSelect.selectedOptions[0].textContent}.`);
-  });
-
-  cloakEnabledInput.addEventListener("change", () => {
-    cloakApi.cloak.enabled = cloakEnabledInput.checked;
-    cloakShowStatus(cloakEnabledInput.checked
-      ? "Auto-open is on. The cloak opens on your next visit."
-      : "Auto-open is off.");
-  });
-
-  cloakOpenButton.addEventListener("click", () => {
-    cloakReadForm();
-    const win = cloakApi.open();
-    cloakShowStatus(win ? "Cloak opened in a new tab." : "Your browser blocked the popup — allow popups for this site.");
-  });
-
-  cloakSaveButton.addEventListener("click", () => {
-    cloakReadForm();
-    cloakApi.cloak.enabled = cloakEnabledInput.checked;
-    cloakShowStatus("Cloaker settings saved.");
-  });
-
-  cloakTestButton.addEventListener("click", () => {
-    cloakReadForm();
-    cloakApi.applyTab();
-    cloakShowStatus("This tab's title and icon now use the cloak.");
-  });
-}
-
-async function initialize() {  if (!config?.url || !config?.publishableKey || !window.supabase?.createClient) {
-    authPanel.hidden = true;
-    showNotice("Profile feature not added yet, being added for version 0.0.2.", "error");
-    return;
-  }
-
-  client = window.supabase.createClient(config.url, config.publishableKey);
-  try {
-    await refreshSession();
-    client.auth.onAuthStateChange((_event, session) => {
-      window.setTimeout(() => {
-        if (session?.user) void renderAccount(session.user);
-        else {
-          currentUser = null;
-          accountPanel.hidden = true;
-          localStorage.removeItem(historyPreferenceKey);
-          authPanel.hidden = false;
-        }
-      }, 0);
-    });
-  } catch (error) {
-    showNotice(error.message || "Could not connect to Supabase.", "error");
-  }
-}
-
-void initialize();
+void renderProfile();

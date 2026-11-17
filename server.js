@@ -12,18 +12,6 @@ app.use((req, res, next) => {
   if (routeRequest(req, res)) return;
   next();
 });
-app.get("/supabase-config.js", (_req, res) => {
-  res.type("application/javascript").send(
-    `window.BLUEBERRY_SUPABASE_CONFIG = Object.freeze(${JSON.stringify({
-      url: process.env.SUPABASE_URL || "",
-      publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || "",
-    })});`
-  );
-});
-app.use(
-  "/vendor/supabase",
-  express.static(path.join(root, "node_modules/@supabase/supabase-js/dist/umd"))
-);
 app.use("/logo", express.static(path.join(root, "logo")));
 app.use("/apps", express.static(path.join(root, "apps")));
 app.use("/static", express.static(path.join(root, "static")));
