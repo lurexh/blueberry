@@ -71,16 +71,17 @@ easter eggs: the Konami code and clicking the hub logo seven times quickly.
 
 ## Deploy
 
-Push changes to `main`, then purge the jsDelivr cache at
-<https://purge.jsdelivr.net/gh/lurexh/blueberry@main/static/index.svg>.
-Open <https://cdn.jsdelivr.net/gh/lurexh/blueberry@main/static/index.svg>.
-The `Purge jsDelivr cache` GitHub Actions workflow also checks and refreshes the
-stable URL after each push, every six hours, and on manual dispatch. It compares
-the served SVG against GitHub's current `main`, retries throttled purges, and
-verifies the CDN content before succeeding.
+The stable link to share is the GitHub Pages URL:
+<https://lurexh.github.io/blueberry/static/index.svg>. The `Deploy static
+browser to GitHub Pages` workflow publishes `static/` after every push to
+`main`, and Pages uses a short cache so updates appear within minutes.
 
-For a cache-independent, automatically deployed URL, the `Deploy static browser
-to GitHub Pages` workflow publishes `static/` after changes to `main`. Open
-<https://lurexh.github.io/blueberry/static/index.svg> after its first successful
-deployment. Do not use the `raw.githubusercontent.com` file URL as an app host:
-GitHub serves raw files with a sandbox policy that blocks the app's scripts.
+The jsDelivr URL <https://cdn.jsdelivr.net/gh/lurexh/blueberry@main/static/index.svg>
+also works, but jsDelivr sends a 7-day browser cache header on `@main` links,
+so browsers keep serving their old copy even after the CDN is purged. The
+`Purge jsDelivr cache` workflow refreshes the CDN after each push, every six
+hours, and on manual dispatch (it retries throttled purges and verifies the
+result), but readers may still need a hard refresh or a `?v=N` cache-busting
+query to see the newest build. Do not use the `raw.githubusercontent.com` file
+URL as an app host: GitHub serves raw files with a sandbox policy that blocks
+the app's scripts.
