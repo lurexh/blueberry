@@ -810,7 +810,7 @@ body.private-mode {
     transition-duration: 0.01ms !important;
   }
 }
-:root{--santa-hat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M15 45 C 18 28, 26 12, 44 9 C 52 8, 54 14, 49 19 C 38 28, 32 36, 30 45 Z' fill='%23c8393b'/%3E%3Crect x='9' y='42' width='40' height='9' rx='4.5' fill='%23ffffff'/%3E%3Ccircle cx='50' cy='13' r='6' fill='%23ffffff'/%3E%3C/svg%3E")}
+:root{--santa-hat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M7 47 Q 10 15, 36 7 Q 54 2, 52 20 Q 50 34, 30 47 Z' fill='%23d0483e'/%3E%3Crect x='4' y='42' width='36' height='13' rx='6.5' fill='%23ffffff' stroke='%23ddccc9' stroke-width='2'/%3E%3Ccircle cx='52' cy='20' r='8.5' fill='%23ffffff' stroke='%23ddccc9' stroke-width='2'/%3E%3C/svg%3E")}
 
 
 .berry-party{position:fixed;z-index:200;inset:0;pointer-events:none;overflow:hidden}

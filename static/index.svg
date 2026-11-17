@@ -34,9 +34,9 @@
         
       </style>
       <style><![CDATA[
-        :root{--santa-hat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M15 45 C 18 28, 26 12, 44 9 C 52 8, 54 14, 49 19 C 38 28, 32 36, 30 45 Z' fill='%23c8393b'/%3E%3Crect x='9' y='42' width='40' height='9' rx='4.5' fill='%23ffffff'/%3E%3Ccircle cx='50' cy='13' r='6' fill='%23ffffff'/%3E%3C/svg%3E")}
+        :root{--santa-hat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M7 47 Q 10 15, 36 7 Q 54 2, 52 20 Q 50 34, 30 47 Z' fill='%23d0483e'/%3E%3Crect x='4' y='42' width='36' height='13' rx='6.5' fill='%23ffffff' stroke='%23ddccc9' stroke-width='2'/%3E%3Ccircle cx='52' cy='20' r='8.5' fill='%23ffffff' stroke='%23ddccc9' stroke-width='2'/%3E%3C/svg%3E")}
         .logo-frame,.start-identity{position:relative}
-        .logo-frame::after,.boot-emblem::after,.start-identity::after{content:"";position:absolute;z-index:3;top:-9%;right:-6%;width:46%;height:46%;background:var(--santa-hat) center/contain no-repeat;transform:rotate(16deg);pointer-events:none}
+        .logo-frame::after,.boot-emblem::after,.start-identity::after{content:"";position:absolute;z-index:3;top:-13%;right:-9%;width:54%;height:54%;background:var(--santa-hat) center/contain no-repeat;transform:rotate(16deg);pointer-events:none}
         .start-identity::after{top:-30px;left:calc(50% + 8px);right:auto;width:30px;height:30px}
         .christmas-countdown{margin-top:12px;color:#9d3a2c;font-family:monospace;font-size:11px;font-weight:700;letter-spacing:.4px;text-shadow:0 1px rgba(255,255,255,.6)}
         .appearance-actions{display:flex;align-items:center;gap:10px}
@@ -1592,13 +1592,20 @@ syncCloakForm();
           });
         }
         let serviceWorkerPromise;
+        function raceWithTimeout(promise, ms, message) {
+          let timer;
+          const timeout = new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error(message)), ms);
+          });
+          return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+        }
         function getServiceWorkerRegistration() {
           if (!serviceWorkerPromise) serviceWorkerPromise = (async () => {
             if (!("serviceWorker" in navigator)) throw new Error("This browser does not support service workers.");
             const swUrl = new URL("sw.js", location.href);
             setStartup("Registering the local service worker…", "loading", 0.12);
-            const registration = await navigator.serviceWorker.register(swUrl, { type: "classic", updateViaCache: "none" });
-            await navigator.serviceWorker.ready;
+            const registration = await raceWithTimeout(navigator.serviceWorker.register(swUrl, { type: "classic", updateViaCache: "none" }), 15000, "The service worker took too long to register. Press retry — or press continue to use the app without the proxy.");
+            await raceWithTimeout(navigator.serviceWorker.ready, 15000, "The service worker could not finish activating. Press retry — or press continue to use the app without the proxy.");
             showStatus("Service worker ready");
             return registration;
           })().catch((error) => {
@@ -1748,7 +1755,7 @@ syncCloakForm();
             serviceworker: worker,
             transport
           });
-          await controller.ready;
+          await raceWithTimeout(controller.ready, 30000, "The proxy runtime took too long to start. Press retry — or press continue to use the app without the proxy.");
           return { engine: "scramjet", scope, controller };
         }
         async function getController() {
