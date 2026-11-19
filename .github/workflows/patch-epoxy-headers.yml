@@ -1,0 +1,40 @@
+name: patch epoxy header handling
+
+on:
+  push:
+    branches:
+      - fix-epoxy-headers
+    paths:
+      - .github/workflows/patch-epoxy-headers.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix-epoxy-headers
+      - name: Patch Epoxy request headers
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("static/clients/epoxy/index.mjs")
+          s = p.read_text()
+          old = """      let headersObj = {};\n      for (let [key, value] of headers) {"""
+          new = """      let headersObj = {};\n      const headerEntries = headers && typeof headers[Symbol.iterator] === "function" ? headers : Object.entries(headers || {});\n      for (let [key, value] of headerEntries) {"""
+          n = s.count(old)
+          if n != 1:
+              raise SystemExit(f"expected 1 match, got {n}")
+          p.write_text(s.replace(old, new))
+          PY
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/clients/epoxy/index.mjs
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "fix: accept object headers in Epoxy transport"
+          git push origin HEAD:fix-epoxy-headers
