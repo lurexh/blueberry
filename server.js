@@ -9,6 +9,12 @@ const { routeRequest, routeUpgrade } = await bootstrap();
 const app = express();
 
 app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  next();
+});
+
+app.use((req, res, next) => {
   if (routeRequest(req, res)) return;
   next();
 });

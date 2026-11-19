@@ -39,7 +39,8 @@ async function serveAppAsHtml(request) {
     });
   }
   const appMarkup = foreignObject[1].replace(/<!\[CDATA\[/g, "").replace(/\]\]>/g, "");
-  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BlueberryUB</title><link rel="icon" type="image/png" href="../logo/blueub.png"></head><body>${appMarkup}</body></html>`;
+  const guardUrl = file("bootstrap-guard.js");
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BlueberryUB</title><link rel="icon" type="image/png" href="../logo/blueub.png"></head><body><script src="${guardUrl}"></script>${appMarkup}</body></html>`;
   return new Response(html, {
     status: response.status,
     statusText: response.statusText,
