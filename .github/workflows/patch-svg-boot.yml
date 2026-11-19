@@ -1,0 +1,51 @@
+name: patch svg boot errors
+
+on:
+  push:
+    branches:
+      - fix-svg-boot
+    paths:
+      - .github/workflows/patch-svg-boot.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix-svg-boot
+      - name: Patch static/index.svg
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("static/index.svg")
+          s = p.read_text()
+          def once(old, new, label):
+              global s
+              n = s.count(old)
+              if n != 1:
+                  raise SystemExit(f"{label}: expected 1 match, got {n}")
+              s = s.replace(old, new)
+          once("""  let link = document.head.querySelector("link[rel~='icon']");""",
+               """  let link = document.head?.querySelector("link[rel~='icon']");""", "head query")
+          once("""    document.head.append(link);""",
+               """    (document.head || document.documentElement).append(link);""", "head append")
+          once("""  document.body.append(layer);""",
+               """  (document.body || document.documentElement).append(layer);""", "body append")
+          once("""        function updateAddressSearchText() {""",
+               """        const addressInput = document.querySelector("#address-input");\n        function updateAddressSearchText() {""", "hoist addressInput")
+          once("""        const pageStatus = status;\n        const addressInput = document.querySelector("#address-input");\n        const tabList""",
+               """        const pageStatus = status;\n        const tabList""", "remove duplicate declaration")
+          p.write_text(s)
+          PY
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/index.svg
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "fix: prevent early SVG boot exceptions"
+          git push origin HEAD:fix-svg-boot
