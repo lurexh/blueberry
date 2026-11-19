@@ -780,11 +780,11 @@ function cloakResolvePreset(id) {
 function applyCloak(settings) {
   document.title = settings?.title || defaultCloak.title;
   const icon = settings?.icon || defaultCloak.icon;
-  let link = document.head.querySelector("link[rel~='icon']");
+  let link = document.head?.querySelector("link[rel~='icon']");
   if (!link) {
     link = createHtmlElement("link");
     link.rel = "icon";
-    document.head.append(link);
+    (document.head || document.documentElement).append(link);
   }
   link.href = icon;
 }
@@ -1140,7 +1140,7 @@ syncCloakForm();
             hat.style.width = hat.style.height = `${18 + Math.random() * 22}px`;
             layer.append(hat);
           }
-          document.body.append(layer);
+          (document.body || document.documentElement).append(layer);
           window.setTimeout(() => layer.remove(), 6500);
         }
         const konamiSequence = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
@@ -1208,6 +1208,7 @@ syncCloakForm();
             return "duckduckgo";
           }
         }
+        const addressInput = document.querySelector("#address-input");
         function updateAddressSearchText() {
           const label = searchEngines[searchEngine].label;
           addressInput.placeholder = `Search ${label} or enter an address`;
@@ -1226,7 +1227,6 @@ syncCloakForm();
           updateAddressSearchText();
         });
         const pageStatus = status;
-        const addressInput = document.querySelector("#address-input");
         const tabList = document.querySelector("#tab-list");
         const pageHost = document.querySelector("#page-host");
         const newTabButton = document.querySelector("#new-tab-button");
